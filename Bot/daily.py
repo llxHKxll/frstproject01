@@ -6,6 +6,7 @@ def can_claim_daily(user_id):
     """Check if the user can claim the daily reward."""
     user_data = get_user(user_id)
     if user_data:
+        print(f"User Data: {user_data}")  # Debugging line to print user_data
         last_claimed = user_data[6]  # The 6th index should now be valid for last_claimed
         current_time = time.time()
 
