@@ -134,7 +134,7 @@ def ensure_user_exists(user_id, username=None):
             )
             conn.commit()
 
-    def get_group_members(chat_id, order_by="points"):
+def get_group_members(chat_id, order_by="points"):
     """Fetch members in the group sorted by points or level."""
     valid_columns = ["points", "level"]
     if order_by not in valid_columns:
