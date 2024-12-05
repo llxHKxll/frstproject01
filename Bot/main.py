@@ -167,10 +167,6 @@ def profile_handler(client, message):
         user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
         # Create a user link using the user's first name
         user_link = f'<a href="tg://user?id={target_user.id}">{target_user.first_name}</a>'
-
-      # Format the last activity time
-        time_diff = int(time()) - last_activity_time
-        last_activity = format_time_diff(time_diff)
       
         # Prepare the profile message
         message.reply_text(
@@ -186,7 +182,7 @@ def profile_handler(client, message):
       message.reply_text(f"Error fetching {target_user.first_name}'s profile. Please try again later or use /start!")
 
 @app.on_message(filters.text)
-async def handle_message(client, message):
+def handle_message(client, message):
     """Handle the flood control and leveling up based on chat activity."""
     # List of allowed group chat IDs (replace with your actual group IDs)
     ALLOWED_GROUPS = [-1002135192853, -1002324159284]  # Add your group IDs here
@@ -203,6 +199,10 @@ async def handle_message(client, message):
     else:
         # Increment experience and level based on the message content
         level_up(user_id, message.text)
+
+# Format the last activity time
+        time_diff = int(time()) - last_activity_time
+        last_activity = format_time_diff(time_diff)
 
 def format_time_diff(seconds):
     """Convert seconds into a readable time format."""
