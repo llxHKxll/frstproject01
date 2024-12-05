@@ -133,3 +133,19 @@ def ensure_user_exists(user_id, username=None):
                 (user_id, username or "Unknown"),
             )
             conn.commit()
+
+    def get_group_members(chat_id, order_by="points"):
+    """Fetch members in the group sorted by points or level."""
+    valid_columns = ["points", "level"]
+    if order_by not in valid_columns:
+        order_by = "points"  # Default to points if invalid column
+    
+    with connect_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(f"""
+            SELECT username, {order_by}
+            FROM users
+            WHERE chat_id = ?
+            ORDER BY {order_by} DESC
+        """, (chat_id,))
+        return cursor.fetchall()
