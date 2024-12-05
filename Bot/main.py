@@ -161,14 +161,27 @@ def profile_handler(client, message):
        message.reply("You can't get the profile of a bot.")
        return
 
+  # Format the last activity time
+        time_diff = int(time()) - last_activity_time
+        last_activity = format_time_diff(time_diff)
+
+def format_time_diff(seconds):
+    """Convert seconds into a readable time format."""
+    if seconds < 60:
+        return f"{seconds} seconds ago"
+    elif seconds < 3600:
+        return f"{seconds // 60} minutes ago"
+    elif seconds < 86400:
+        return f"{seconds // 3600} hours ago"
+    else:
+        return f"{seconds // 86400} days ago"
+      
         # Fetch user data from the database for the target user
     user_data = get_user(target_user.id)
     if user_data:
         user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
         # Create a user link using the user's first name
-        user_link = f'<a href="tg://user?id={target_user.id}">{target_user.first_name}</a>'
-      
-        # Prepare the profile message
+        user_link = f'<a href="tg://user?id={target_user.id}">{target_user.first_name}</a>"
         message.reply_text(
           f"**{user_link}'s Profile:**\n"
           f"💎 **Level** : {level}\n"
@@ -199,21 +212,6 @@ def handle_message(client, message):
     else:
         # Increment experience and level based on the message content
         level_up(user_id, message.text)
-
-# Format the last activity time
-        time_diff = int(time()) - last_activity_time
-        last_activity = format_time_diff(time_diff)
-
-def format_time_diff(seconds):
-    """Convert seconds into a readable time format."""
-    if seconds < 60:
-        return f"{seconds} seconds ago"
-    elif seconds < 3600:
-        return f"{seconds // 60} minutes ago"
-    elif seconds < 86400:
-        return f"{seconds // 3600} hours ago"
-    else:
-        return f"{seconds // 86400} days ago"
 
 def get_user(user_id):
     """Fetch user data from the database."""
