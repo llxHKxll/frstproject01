@@ -206,7 +206,7 @@ async def handle_message(client, message):
     if check_flood(user_id):
         await message.reply("You are sending messages too quickly. Please wait a few seconds!")
     else:
-        # Call level_up to track message and update experience points
+        # Increment experience and level based on the message content
         level_up(user_id, message.text)
 
 def format_time_diff(seconds):
