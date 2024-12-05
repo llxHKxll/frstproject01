@@ -29,14 +29,14 @@ def prepare_leaderboard_message(chat_id, leaderboard_type):
     
     return leaderboard_text, reply_markup
 
-def update_leaderboard_message(client, message, chat_id, leaderboard_type):
+def update_leaderboard_message(client, callback_message, chat_id, leaderboard_type):
     """Fetch and edit the leaderboard message based on the selected leaderboard type."""
     leaderboard_text, reply_markup = prepare_leaderboard_message(chat_id, leaderboard_type)
     
     # Edit the message instead of sending a new one
     client.edit_message_text(
         chat_id,
-        message.message_id,
+        callback_message.id,  # Corrected here
         leaderboard_text,
         reply_markup=reply_markup
     )
