@@ -143,7 +143,7 @@ def help_handler(client, message):
     message.reply_text(help_text)
 
 @app.on_message(filters.command("profile"))
-async def profile_handler(client, message):
+def profile_handler(client, message):
     """Handle the /profile command."""
     # Check if the command is replied to a message or tagged with @username
     if message.reply_to_message:
@@ -173,7 +173,7 @@ async def profile_handler(client, message):
         last_activity = format_time_diff(time_diff)
       
         # Prepare the profile message
-        await message.reply_text(
+        message.reply_text(
           f"**{user_link}'s Profile:**\n"
           f"💎 **Level** : {level}\n"
           f"🎮 **Exp** : {exp}/{level * 100}\n"
