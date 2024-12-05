@@ -17,7 +17,7 @@ def create_db():
     """Initialize the database by creating tables."""
     with connect_db() as conn:
         c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS users (
+        c.execute('''CREATE TABLE IF NOT EXISTS users
                         user_id INTEGER PRIMARY KEY,
                         username TEXT,
                         points INTEGER DEFAULT 10000,
