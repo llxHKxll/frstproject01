@@ -144,65 +144,74 @@ def help_handler(client, message):
 
 @app.on_message(filters.command("profile"))
 def profile_handler(client, message):
-    """Handle the /profile command."""
-    # Check if the command is replied to a message or tagged with @username
-    if message.reply_to_message:
-        # If the command is used by replying to another user's message
-        target_user = message.reply_to_message.from_user
-    elif message.entities and message.entities[0].type == "mention":
-        # If the command is used by tagging a user (e.g., @username)
-        target_user = message.entities[0].user
-    else:
-        # If no reply or mention, show the profile of the user who sent the command
-        target_user = message.from_user
+    # Check if the command is replied to a message or tagged with @username
+    if message.reply_to_message:
+        # If the command is used by replying to another user's message
+        target_user = message.reply_to_message.from_user
+    elif message.entities and message.entities[0].type == "mention":
+        # If the command is used by tagging a user (e.g., @username)
+        target_user = message.entities[0].user
+    else:
+        # If no reply or mention, show the profile of the user who sent the command
+        target_user = message.from_user
 
-    # Check if the target is a bot
-    if target_user.is_bot:
-       message.reply("You can't get the profile of a bot.")
-       return
+    # Check if the target is a bot
+    if target_user.is_bot:
+        message.reply("You can't get the profile of a bot.")
+        return
 
-  # Format the last activity time
-    time_diff = int(time()) - last_activity_time
-    last_activity = format_time_diff(time_diff)
+# Format the last activity time
+        time_diff = int(time()) - last_activity_time
+        last_activity = format_time_diff(time_diff)
 
 def format_time_diff(seconds):
-    """Convert seconds into a readable time format."""
-    if seconds < 60:
-        return f"{seconds} seconds ago"
-    elif seconds < 3600:
-        return f"{seconds // 60} minutes ago"
-    elif seconds < 86400:
-        return f"{seconds // 3600} hours ago"
-    else:
-        return f"{seconds // 86400} days ago"
-      
-        # Fetch user data from the database for the target user
-    user_data = get_user(target_user.id)
-    if user_data:
-      user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
-    # Create a user link using the user's first name
-    user_link = f'<a href="tg://user?id={target_user.id}">{target_user.first_name}</a>'
-    message.reply_text(
-        f"**{user_link}'s Profile:**\n"
-        f"💎 **Level** : {level}\n"
-        f"🎮 **Exp** : {exp}/{level * 100}\n"
-        f"💰 **Points** : {points}\n"
-        f"❤️ **Health** : {health}%\n\n"
-        f"🕒 **Last Checkin** : {last_activity}\n\n"
-        f"- **You're doing great! Keep chatting to level up!**"
-    )
-else:
-message.reply_text(f"Error fetching {target_user.first_name}'s profile. Please try again later or use /start!")
-  
+    """Convert seconds into a readable time format."""
+    if seconds < 60:
+        return f"{seconds} seconds ago"
+    elif seconds < 3600:
+        return f"{seconds // 60} minutes ago"
+    elif seconds < 86400:
+        return f"{seconds // 3600} hours ago"
+    else:
+        return f"{seconds // 86400} days ago"
+
+    # Fetch user data from the database for the target user
+    user_data = get_user(target_user.id)
+    if user_data:
+        user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
+        # Create a user link using the user's first name
+        user_link = f'<a href="tg://user?id={target_user.id}">{target_user.first_name}</a>'
+        
+        # Send the profile details
+        message.reply_text(
+            f"**{user_link}'s Profile :**\n"
+            f"💎 **Level** : {level}\n"
+            f"🎮 **Exp** : {exp}/{level*100}\n"
+            f"💰 **Points** : {points}\n"
+            f"❤️ **Health** : {health}\n\n"
+            f"🕒 **Last Checkin** : {last_activity}\n\n"
+            f"- **You're doing great ! Keep chatting to level up !**"
+          )
+    else:
+        message.reply_text(f"Error fetching {target_user.first_name}'s profile. Please try again later or try after using /start !")
+
 @app.on_message(filters.text)
 def handle_message(client, message):
-    """Handle the flood control and leveling up based on chat activity."""
-    # List of allowed group chat IDs (replace with your actual group IDs)
-    ALLOWED_GROUPS = [-1002135192853, -1002324159284]  # Add your group IDs here
+  # List of allowed group chat IDs (replace with your actual group IDs)
+    ALLOWED_GROUPS = [-1002135192853, -1002324159284]  # Add your group IDs here
 
-    # Ensure the message is from an allowed group
-    if message.chat.id not in ALLOWED_GROUPS:
-        return  # Ignore messages outside allowed groups
+    # Ensure the message is from an allowed group
+    if message.chat.id not in ALLOWED_GROUPS:
+        return  # Ignore messages outside allowed groups
+
+    user_id = message.from_user.id
+
+    # Flood control logic
+    if check_flood(user_id):
+        message.reply("You are sending messages too quickly. Please wait a few seconds !")
+    else:
+        # Increment experience and level
+        level_up(user_id, message.text)
 
     user_id = message.from_user.id
 
