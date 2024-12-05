@@ -141,7 +141,8 @@ def help_handler(client, message):
     message.reply_text(help_text)
 
 @app.on_message(filters.command("profile"))
-def profile_handler(client, message):
+async def profile_handler(client, message):
+    """Handle the /profile command."""
     # Check if the command is replied to a message or tagged with @username
     if message.reply_to_message:
         # If the command is used by replying to another user's message
@@ -155,30 +156,41 @@ def profile_handler(client, message):
 
     # Check if the target is a bot
     if target_user.is_bot:
-        message.reply("You can't get the profile of a bot.")
+        await message.reply("You can't get the profile of a bot.")
         return
 
     # Fetch user data from the database for the target user
     user_data = get_user(target_user.id)
     if user_data:
         user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
+        
+        # Format the last activity time
+        time_diff = int(time()) - last_activity_time
+        last_activity = format_time_diff(time_diff)
+
         # Create a user link using the user's first name
         user_link = f'<a href="tg://user?id={target_user.id}">{target_user.first_name}</a>'
         
+        # Prepare the profile message
+        profile_text = f"""
+        **{user_link}'s Profile:**
+        🆔 **User ID**: {user_id}
+        🏅 **Level**: {level}  |  🎮 **XP**: {exp}/{level * 100}
+        💰 **Points**: {points}  |  ❤️ **Health**: {health}%
+        
+        ⏳ **Last Activity**: {last_activity}
+        """
+
         # Send the profile details
-        message.reply_text(
-            f"**{user_link}'s Profile :**\n"
-            f"Points: {points}\n"
-            f"Level: {level}\n"
-            f"EXP: {exp}\n"
-            f"Health: {health}"
-        )
+        await message.reply_text(profile_text, parse_mode="HTML")
     else:
-        message.reply_text(f"Error fetching {target_user.first_name}'s profile. Please try again later or try after using /start !")
+        # If user data doesn't exist
+        await message.reply_text(f"Error fetching {target_user.first_name}'s profile. Please try again later or use /start!")
 
 @app.on_message(filters.text)
-def handle_message(client, message):
-  # List of allowed group chat IDs (replace with your actual group IDs)
+async def handle_message(client, message):
+    """Handle the flood control and leveling up based on chat activity."""
+    # List of allowed group chat IDs (replace with your actual group IDs)
     ALLOWED_GROUPS = [-1002135192853, -1002324159284]  # Add your group IDs here
 
     # Ensure the message is from an allowed group
@@ -189,10 +201,38 @@ def handle_message(client, message):
 
     # Flood control logic
     if check_flood(user_id):
-        message.reply("You are sending messages too quickly. Please wait a few seconds !")
+        await message.reply("You are sending messages too quickly. Please wait a few seconds!")
     else:
-        # Increment experience and level
-        level_up(user_id, message.text) 
+        # Increment experience and level based on the message content
+        level_up(user_id, message.text)
+
+def format_time_diff(seconds):
+    """Convert seconds into a readable time format."""
+    if seconds < 60:
+        return f"{seconds} seconds ago"
+    elif seconds < 3600:
+        return f"{seconds // 60} minutes ago"
+    elif seconds < 86400:
+        return f"{seconds // 3600} hours ago"
+    else:
+        return f"{seconds // 86400} days ago"
+
+def get_user(user_id):
+    """Fetch user data from the database."""
+    with connect_db() as conn:
+        c = conn.cursor()
+        c.execute("SELECT user_id, username, points, level, exp, health, last_activity_time, last_claimed FROM users WHERE user_id = ?", (user_id,))
+        return c.fetchone()
+
+def check_flood(user_id):
+    """Flood control check function."""
+    # Implement your flood control logic here (e.g., check timestamp difference from last message)
+    return False  # Placeholder return value
+
+def level_up(user_id, message_text):
+    """Increment user experience and level based on message text."""
+    # You should implement your own leveling logic here.
+    pass 
 
 
 if __name__ == "__main__":
