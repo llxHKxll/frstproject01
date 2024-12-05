@@ -175,10 +175,14 @@ async def profile_handler(client, message):
         profile_text = f"""
         **{user_link}'s Profile:**
         🆔 **User ID**: {user_id}
-        🏅 **Level**: {level}  |  🎮 **XP**: {exp}/{level * 100}
-        💰 **Points**: {points}  |  ❤️ **Health**: {health}%
+        🏅 **Level**: {level}
+        🎮 **XP**: {exp}/{level * 100}
+        💰 **Points**: {points}
+        ❤️ **Health**: {health}%
         
         ⏳ **Last Activity**: {last_activity}
+
+        - **You're doing great! Keep chatting to level up!**
         """
 
         # Send the profile details
