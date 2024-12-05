@@ -44,6 +44,7 @@ def add_user(user_id, username=None):
             (user_id, username or "Unknown", 10000, 1, 0, 100, 0, 0)  # Add last_claimed as 0
         )
         conn.commit()
+        print(f"Added user: {user_id}, {username}")  # Debugging line
 
 def get_user(user_id):
     """Retrieve user data from the database."""
@@ -51,14 +52,14 @@ def get_user(user_id):
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT user_id, username, points, level, exp, health
+            SELECT user_id, username, points, level, exp, health, last_activity_time, last_claimed
             FROM users
             WHERE user_id = ?
             """,
             (user_id,),
         )
         return cursor.fetchone()
-
+        
 def update_points(user_id, points):
     """Update user points."""
     with connect_db() as conn:
