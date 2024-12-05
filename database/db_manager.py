@@ -17,14 +17,17 @@ def create_db():
     """Initialize the database by creating tables."""
     with connect_db() as conn:
         c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS users
-                        user_id INTEGER PRIMARY KEY,
-                        username TEXT,
-                        points INTEGER DEFAULT 10000,
-                        level INTEGER DEFAULT 1,
-                        exp INTEGER DEFAULT 0,
-                        health INTEGER DEFAULT 100,
-                        last_activity_time INTEGER DEFAULT 0,)''') 
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                user_id INTEGER PRIMARY KEY,
+                username TEXT,
+                points INTEGER DEFAULT 10000,
+                level INTEGER DEFAULT 1,
+                exp INTEGER DEFAULT 0,
+                health INTEGER DEFAULT 100,
+                last_activity_time INTEGER DEFAULT 0
+            )
+        ''')  # Removed the trailing comma before the closing parenthesis
         conn.commit()
 
 def add_user(user_id, username=None):
