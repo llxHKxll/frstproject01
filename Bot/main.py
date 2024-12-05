@@ -81,8 +81,13 @@ async def leaderboard_handler(client, message):
 
     leaderboard_type = leaderboard_modes[chat_id]  # Points or level
 
-    # Call the function to prepare and send/edit the leaderboard
-    update_leaderboard_message(client, message, chat_id, leaderboard_type)
+    # Prepare the leaderboard message and inline buttons
+    leaderboard_text, reply_markup = prepare_leaderboard_message(chat_id, leaderboard_type)
+
+    # Send the leaderboard message and store its message ID
+    sent_message = await message.reply_text(leaderboard_text, reply_markup=reply_markup)
+    leaderboard_message_ids[chat_id] = sent_message.id  # Save message ID for future edits
+
 
 @app.on_callback_query(filters.regex("points|level"))
 async def leaderboard_switch_handler(client, callback_query):
@@ -93,10 +98,18 @@ async def leaderboard_switch_handler(client, callback_query):
     # Update the leaderboard mode for the group
     leaderboard_modes[chat_id] = leaderboard_type
 
-    # Edit the leaderboard message based on the new type
-    update_leaderboard_message(client, callback_query.message, chat_id, leaderboard_type)
+    # Prepare the updated leaderboard message and inline buttons
+    leaderboard_text, reply_markup = prepare_leaderboard_message(chat_id, leaderboard_type)
 
-    # Acknowledge the callback query
+    # Edit the leaderboard message based on the new type
+    await client.edit_message_text(
+        chat_id=chat_id,
+        message_id=callback_query.message.id,  # Use the ID of the callback query message
+        text=leaderboard_text,
+        reply_markup=reply_markup
+    )
+
+    # Acknowledge the callback query to remove "loading" state
     await callback_query.answer()
 
 @app.on_message(filters.command("help"))
