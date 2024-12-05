@@ -173,7 +173,7 @@ async def profile_handler(client, message):
         last_activity = format_time_diff(time_diff)
       
         # Prepare the profile message
-        message.reply_text(
+        await message.reply_text(
           f"**{user_link}'s Profile:**\n"
           f"💎 **Level** : {level}\n"
           f"🎮 **Exp** : {exp}/{level * 100}\n"
