@@ -2,6 +2,7 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from Bot.flood_control import check_flood
 from Bot.leveling import level_up
+from Bot.daily import claim_daily_reward
 from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health
 
 API_ID = "21989020"
@@ -61,6 +62,13 @@ def start_handler(client, message):
         add_user(user_id, username)
         user_data = get_user(user_id)
 
+@app.on_message(filters.command("daily"))
+def daily_handler(client, message):
+    """Handle the /daily command to give daily rewards."""
+    user_id = message.from_user.id
+    response = claim_daily_reward(user_id)
+    message.reply_text(response)
+
 @app.on_message(filters.command("help"))
 def help_handler(client, message):
     # List of available commands and their descriptions
@@ -68,6 +76,7 @@ def help_handler(client, message):
         "Here are the commands you can use with the Kaisen Ranking Bot:\n\n"
         "/start - Start the bot and set up your profile.\n"
         "/profile - View your profile or the profile of another user (by replying to their message or tagging them).\n"
+        "/daily - Claim your daily reward.\n"
         "/help - Show this help message.\n\n"
         "💬 **Message Tracking**: Send messages in the group to earn experience and level up.\n"
         "⚡ **Flood Control**: Don't spam! The bot will block you if you send too many messages too quickly.\n"
