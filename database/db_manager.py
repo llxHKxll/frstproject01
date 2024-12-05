@@ -13,6 +13,7 @@ def connect_db():
     """Connect to the SQLite database."""
     return sqlite3.connect(DB_PATH)
 
+# In db_manager.py - Modify the `create_db()` function to add this column
 def create_db():
     """Initialize the database by creating tables."""
     with connect_db() as conn:
@@ -25,9 +26,10 @@ def create_db():
                 level INTEGER DEFAULT 1,
                 exp INTEGER DEFAULT 0,
                 health INTEGER DEFAULT 100,
-                last_activity_time INTEGER DEFAULT 0
+                last_activity_time INTEGER DEFAULT 0,
+                last_claimed INTEGER DEFAULT 0  -- New column for daily rewards
             )
-        ''')  # Removed the trailing comma before the closing parenthesis
+        ''')
         conn.commit()
 
 def add_user(user_id, username=None):
