@@ -162,8 +162,8 @@ def profile_handler(client, message):
        return
 
   # Format the last activity time
-        time_diff = int(time()) - last_activity_time
-        last_activity = format_time_diff(time_diff)
+      time_diff = int(time()) - last_activity_time
+      last_activity = format_time_diff(time_diff)
 
 def format_time_diff(seconds):
     """Convert seconds into a readable time format."""
