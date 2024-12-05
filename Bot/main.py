@@ -158,8 +158,8 @@ def profile_handler(client, message):
 
     # Check if the target is a bot
     if target_user.is_bot:
-        await message.reply("You can't get the profile of a bot.")
-        return
+       message.reply("You can't get the profile of a bot.")
+       return
 
         # Fetch user data from the database for the target user
     user_data = get_user(target_user.id)
