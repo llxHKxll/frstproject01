@@ -172,23 +172,17 @@ async def profile_handler(client, message):
         time_diff = int(time()) - last_activity_time
         last_activity = format_time_diff(time_diff)
         # Prepare the profile message
-        profile_text = f"""
-        **{user_link}'s Profile:**
-💎 **Level** : {level}
-🎮 **Exp** : {exp}/{level * 100}
-💰 **Points** : {points}
-❤️ **Health** : {health}%
-        
-🕒 **Last Checkin** : {last_activity}
-
-- **You're doing great ! Keep chatting to level up !**
-        """
-
-        # Send the profile details
-        await message.reply_text(profile_text)
+        message.reply_text(
+          f"**{user_link}'s Profile:**\n"
+          f"💎 **Level** : {level}\n"
+          f"🎮 **Exp** : {exp}/{level * 100}\n"
+          f"💰 **Points** : {points}\n"
+          f"❤️ **Health** : {health}%\n\n"
+          f"🕒 **Last Checkin** : {last_activity}\n\n"
+          f"- **You're doing great ! Keep chatting to level up !**"
+        )
     else:
-        # If user data doesn't exist
-        await message.reply_text(f"Error fetching {target_user.first_name}'s profile. Please try again later or use /start!")
+      message.reply_text(f"Error fetching {target_user.first_name}'s profile. Please try again later or use /start!")
 
 @app.on_message(filters.text)
 async def handle_message(client, message):
@@ -204,7 +198,7 @@ async def handle_message(client, message):
 
     # Flood control logic
     if check_flood(user_id):
-        await message.reply("You are sending messages too quickly. Please wait a few seconds!")
+       message.reply("You are sending messages too quickly. Please wait a few seconds!")
     else:
         # Increment experience and level based on the message content
         level_up(user_id, message.text)
