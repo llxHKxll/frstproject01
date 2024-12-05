@@ -3,11 +3,10 @@ from database.db_manager import get_user, update_user_data
 def level_up(user_id, message_text):
     """Track experience and level for a user based on their messages."""
     user_data = get_user(user_id)
-
+    
     if user_data:
-        # Increment experience points by 10 for each valid message
-        exp_gained = 2  # Adjust the value as necessary for your bot
-
+        # Exp based on message length
+        exp_gained = len(message_text.split())  # Experience based on word count
         new_exp = user_data[4] + exp_gained  # Adding the gained exp to current exp
         new_level = new_exp // 100  # Every 100 exp points increase the level
 
