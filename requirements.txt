@@ -1,0 +1,6 @@
+Flask
+python-dotenv
+pyrogram
+python-telegram-bot==20.1
+tgcrypto
+apscheduler
