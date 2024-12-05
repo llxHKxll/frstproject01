@@ -171,6 +171,7 @@ async def profile_handler(client, message):
       # Format the last activity time
         time_diff = int(time()) - last_activity_time
         last_activity = format_time_diff(time_diff)
+      
         # Prepare the profile message
         message.reply_text(
           f"**{user_link}'s Profile:**\n"
