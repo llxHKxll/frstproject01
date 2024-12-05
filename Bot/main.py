@@ -3,6 +3,8 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from Bot.flood_control import check_flood
 from Bot.leveling import level_up
 from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health
+from datetime import datetime, timedelta
+from pyrogram.types import Message
 
 API_ID = "21989020"
 API_HASH = "3959305ae244126404702aa5068ba15c"
@@ -61,22 +63,67 @@ def start_handler(client, message):
         add_user(user_id, username)
         user_data = get_user(user_id)
 
-# Assuming your app instance is named `app`
-@app.on_message(filters.command("cmd"))
+@app.on_message(filters.command("help"))
 def help_handler(client, message):
-  message.reply_photo(
-     photo="https://imgur.com/a/hJU9sB4",
-     caption=(
-        "**Bot Help Menu**\n\n"
-        "`/start` - Start the bot and get a welcome message.\n"
-        "`/help` - Show this help message.\n"
-        "`/daily` - Claim your daily rewards.\n"
-        "`/level` - Check your current level and experience points.\n"
-        "`/balance` - Check your current balance.\n"
-        "`/shop` - Access the shop to redeem rewards.\n"
-        "`/admin` - Admin-only commands (restricted access).\n"
-        "\n*More commands will be added soon!*"
+    # List of available commands and their descriptions
+    help_text = (
+        "Here are the commands you can use with the Pyxn Bot:\n\n"
+        "/start - Start the bot and set up your profile.\n"
+        "/profile - View your profile or the profile of another user (by replying to their message or tagging them).\n"
+        "/help - Show this help message.\n\n"
+        "💬 **Message Tracking**: Send messages in the group to earn experience and level up.\n"
+        "⚡ **Flood Control**: Don't spam! The bot will block you if you send too many messages too quickly.\n"
+        "🏆 **Leaderboard**: Soon to come! Compete with others based on your activity and points.\n"
     )
+    
+    # Send the help message to the user
+    message.reply_text(help_text)
+
+@Client.on_message(filters.command("daily") & filters.private)
+async def daily_reward(client: Client, message: Message):
+    user_id = message.from_user.id
+    now = datetime.utcnow()
+
+    # Fetch user data from the database
+    user_data = db.get_user_data(user_id)  # Adjust this to your DB function
+    if not user_data:
+        # If the user is not registered, register them
+        db.register_user(user_id)
+        user_data = {"last_daily": None, "balance": 0}  # Default user data
+
+    last_daily = user_data.get("last_daily")
+    balance = user_data.get("balance", 0)
+
+    # Check if the user can claim the daily reward
+    if last_daily:
+        last_claim_time = datetime.strptime(last_daily, "%Y-%m-%d %H:%M:%S")
+        next_claim_time = last_claim_time + timedelta(days=1)
+
+        if now < next_claim_time:
+            remaining_time = next_claim_time - now
+            hours, remainder = divmod(remaining_time.seconds, 3600)
+            minutes, _ = divmod(remainder, 60)
+            await message.reply_text(
+                f"You've already claimed your daily reward!\n"
+                f"Come back in {remaining_time.days}d {hours}h {minutes}m."
+            )
+            return
+
+    # Calculate daily reward (you can customize this logic)
+    daily_reward = 100  # Fixed amount or randomized
+    new_balance = balance + daily_reward
+
+    # Update the database
+    db.update_user_data(
+        user_id=user_id,
+        last_daily=now.strftime("%Y-%m-%d %H:%M:%S"),
+        balance=new_balance
+    )
+
+    # Reply to the user
+    await message.reply_text(
+        f"🎉 You've claimed your daily reward of {daily_reward} points!\n"
+        f"Your new balance is: {new_balance} points."
   )
 
 @app.on_message(filters.command("profile"))
