@@ -31,7 +31,7 @@ def start_handler(client, message):
     # Fetch user data from the database
     user_data = get_user(user_id)
     if user_data:
-        user_id, username, points, level, exp, health = user_data
+        user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
 
       # Create a user link using the user's first name
         user_link = f'<a href="tg://user?id={user_id}">{first_name}</a>'
@@ -107,7 +107,7 @@ def profile_handler(client, message):
     # Fetch user data from the database for the target user
     user_data = get_user(target_user.id)
     if user_data:
-        user_id, username, points, level, exp, health = user_data
+        user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
         # Create a user link using the user's first name
         user_link = f'<a href="tg://user?id={target_user.id}">{target_user.first_name}</a>'
         
