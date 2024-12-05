@@ -61,6 +61,23 @@ def start_handler(client, message):
         add_user(user_id, username)
         user_data = get_user(user_id)
 
+# Assuming your app instance is named `app`
+@app.on_message(filters.command("cmd"))
+def help_handler(client, message):
+  message.reply_photo(
+     photo="https://imgur.com/a/hJU9sB4",
+     caption=(
+        "**Bot Help Menu**\n\n"
+        "`/start` - Start the bot and get a welcome message.\n"
+        "`/help` - Show this help message.\n"
+        "`/daily` - Claim your daily rewards.\n"
+        "`/level` - Check your current level and experience points.\n"
+        "`/balance` - Check your current balance.\n"
+        "`/shop` - Access the shop to redeem rewards.\n"
+        "`/admin` - Admin-only commands (restricted access).\n"
+        "\n*More commands will be added soon!*"
+    )
+  )
 
 @app.on_message(filters.command("profile"))
 def profile_handler(client, message):
@@ -116,23 +133,6 @@ def handle_message(client, message):
         # Increment experience and level
         level_up(user_id, message.text) 
 
-# Assuming your app instance is named `app`
-@app.on_message(filters.command("cmd"))
-def help_handler(client, message):
-  message.reply_photo(
-     photo="https://imgur.com/a/hJU9sB4",
-     caption=(
-        "**Bot Help Menu**\n\n"
-        "`/start` - Start the bot and get a welcome message.\n"
-        "`/help` - Show this help message.\n"
-        "`/daily` - Claim your daily rewards.\n"
-        "`/level` - Check your current level and experience points.\n"
-        "`/balance` - Check your current balance.\n"
-        "`/shop` - Access the shop to redeem rewards.\n"
-        "`/admin` - Admin-only commands (restricted access).\n"
-        "\n*More commands will be added soon!*"
-    )
-  )
 
 if __name__ == "__main__":
     app.run()
