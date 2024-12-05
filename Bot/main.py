@@ -161,17 +161,16 @@ async def profile_handler(client, message):
         await message.reply("You can't get the profile of a bot.")
         return
 
-        # Format the last activity time
-        time_diff = int(time()) - last_activity_time
-        last_activity = format_time_diff(time_diff)
-
         # Fetch user data from the database for the target user
     user_data = get_user(target_user.id)
     if user_data:
         user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
         # Create a user link using the user's first name
         user_link = f'<a href="tg://user?id={target_user.id}">{target_user.first_name}</a>'
-        
+
+      # Format the last activity time
+        time_diff = int(time()) - last_activity_time
+        last_activity = format_time_diff(time_diff)
         # Prepare the profile message
         profile_text = f"""
         **{user_link}'s Profile:**
