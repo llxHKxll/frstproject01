@@ -188,7 +188,7 @@ async def profile_handler(client, message):
         """
 
         # Send the profile details
-        await message.reply_text(profile_text, parse_mode="HTML")
+        await message.reply_text(profile_text)
     else:
         # If user data doesn't exist
         await message.reply_text(f"Error fetching {target_user.first_name}'s profile. Please try again later or use /start!")
