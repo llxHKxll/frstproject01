@@ -70,6 +70,11 @@ def daily_handler(client, message):
     response = claim_daily_reward(user_id)
     message.reply_text(response)
 
+# Global dictionaries for leaderboard modes and message IDs
+leaderboard_modes = {}  # Tracks current leaderboard type ("points" or "level") for each group
+leaderboard_message_ids = {}  # Tracks message IDs of leaderboard messages for each group
+
+
 @app.on_message(filters.command("leaderboard"))
 async def leaderboard_handler(client, message):
     """Handle the /leaderboard command."""
@@ -84,9 +89,11 @@ async def leaderboard_handler(client, message):
     # Prepare the leaderboard message and inline buttons
     leaderboard_text, reply_markup = prepare_leaderboard_message(chat_id, leaderboard_type)
 
-    # Send the leaderboard message and store its message ID
+    # Send the leaderboard message
     sent_message = await message.reply_text(leaderboard_text, reply_markup=reply_markup)
-    leaderboard_message_ids[chat_id] = sent_message.id  # Save message ID for future edits
+
+    # Save the message ID for future edits
+    leaderboard_message_ids[chat_id] = sent_message.id
 
 
 @app.on_callback_query(filters.regex("points|level"))
@@ -101,15 +108,19 @@ async def leaderboard_switch_handler(client, callback_query):
     # Prepare the updated leaderboard message and inline buttons
     leaderboard_text, reply_markup = prepare_leaderboard_message(chat_id, leaderboard_type)
 
-    # Edit the leaderboard message based on the new type
-    await client.edit_message_text(
-        chat_id=chat_id,
-        message_id=callback_query.message.id,  # Use the ID of the callback query message
-        text=leaderboard_text,
-        reply_markup=reply_markup
-    )
+    # Edit the leaderboard message
+    if chat_id in leaderboard_message_ids:
+        try:
+            await client.edit_message_text(
+                chat_id=chat_id,
+                message_id=leaderboard_message_ids[chat_id],  # Use the stored message ID
+                text=leaderboard_text,
+                reply_markup=reply_markup
+            )
+        except Exception as e:
+            print(f"Error editing leaderboard message: {e}")
 
-    # Acknowledge the callback query to remove "loading" state
+    # Acknowledge the callback query to remove the "loading" state
     await callback_query.answer()
 
 @app.on_message(filters.command("help"))
