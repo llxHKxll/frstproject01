@@ -27,9 +27,10 @@ def create_db():
                 exp INTEGER DEFAULT 0,
                 health INTEGER DEFAULT 100,
                 last_activity_time INTEGER DEFAULT 0,
-                last_claimed INTEGER DEFAULT 0  -- Add last_claimed column here
+                last_claimed INTEGER DEFAULT 0,
+                chat_id INTEGER DEFAULT 0  -- Add this column to store group ID
             )
-        ''')
+        ''')  
         conn.commit()
 
 def add_user(user_id, username=None):
@@ -38,10 +39,10 @@ def add_user(user_id, username=None):
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT OR IGNORE INTO users (user_id, username, points, level, exp, health, last_activity_time, last_claimed)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR IGNORE INTO users (user_id, username, points, level, exp, health, last_activity_time, last_claimed, chat_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (user_id, username or "Unknown", 10000, 1, 0, 100, 0, 0)  # Add last_claimed as 0
+            (user_id, username or "Unknown", 10000, 1, 0, 100, 0, 0, chat_id)  # Add last_claimed as 0
         )
         conn.commit()
         print(f"Added user: {user_id}, {username}")  # Debugging line
