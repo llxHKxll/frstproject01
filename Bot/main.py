@@ -191,7 +191,7 @@ def format_time_diff(seconds):
         f"🕒 **Last Checkin** : {last_activity}\n\n"
         f"- **You're doing great ! Keep chatting to level up !**"
       )
-else:
+    else:
   message.reply_text(f"Error fetching {target_user.first_name}'s profile. Please try again later or use /start!")
 
 @app.on_message(filters.text)
