@@ -4,6 +4,7 @@ from Bot.flood_control import check_flood
 from Bot.leveling import level_up
 from Bot.daily import claim_daily_reward
 from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health
+from leaderboard import update_leaderboard_message, leaderboard_modes  # Import leaderboard functions
 
 API_ID = "21989020"
 API_HASH = "3959305ae244126404702aa5068ba15c"
@@ -68,6 +69,35 @@ def daily_handler(client, message):
     user_id = message.from_user.id
     response = claim_daily_reward(user_id)
     message.reply_text(response)
+
+@app.on_message(filters.command("leaderboard"))
+async def leaderboard_handler(client, message):
+    """Handle the /leaderboard command."""
+    chat_id = message.chat.id
+
+    # Default to points if no leaderboard mode is set
+    if chat_id not in leaderboard_modes:
+        leaderboard_modes[chat_id] = "points"  # Default mode is points
+
+    leaderboard_type = leaderboard_modes[chat_id]  # Points or level
+
+    # Call the function to prepare and send/edit the leaderboard
+    update_leaderboard_message(client, message, chat_id, leaderboard_type)
+
+@app.on_callback_query(filters.regex("points|level"))
+async def leaderboard_switch_handler(client, callback_query):
+    """Handle the switching between points and level leaderboards."""
+    chat_id = callback_query.message.chat.id
+    leaderboard_type = callback_query.data  # Either "points" or "level"
+
+    # Update the leaderboard mode for the group
+    leaderboard_modes[chat_id] = leaderboard_type
+
+    # Edit the leaderboard message based on the new type
+    update_leaderboard_message(client, callback_query.message, chat_id, leaderboard_type)
+
+    # Acknowledge the callback query
+    await callback_query.answer()
 
 @app.on_message(filters.command("help"))
 def help_handler(client, message):
