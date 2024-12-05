@@ -179,7 +179,7 @@ def format_time_diff(seconds):
         # Fetch user data from the database for the target user
     user_data = get_user(target_user.id)
     if user_data:
-    user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
+      user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
     # Create a user link using the user's first name
     user_link = f'<a href="tg://user?id={target_user.id}">{target_user.first_name}</a>'
     message.reply_text(
