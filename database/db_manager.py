@@ -143,9 +143,9 @@ def get_group_members(chat_id, order_by="points"):
     with connect_db() as conn:
         cursor = conn.cursor()
         cursor.execute(f"""
-            SELECT user_id, username, {order_by}
+            SELECT username, {order_by}
             FROM users
             WHERE chat_id = ?
             ORDER BY {order_by} DESC
         """, (chat_id,))
-        return cursor.fetchall()  # Returns a list of tuples (user_id, username, points/level)
+        return cursor.fetchall()  # Returns a list of tuples (username, points/level)
