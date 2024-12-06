@@ -206,7 +206,7 @@ return
 user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
     
     # Get the current time
-    current_time = time.time()  # Get current time in seconds
+current_time = time.time()  # Get current time in seconds
 
     # Check if the user has already claimed their daily reward
     if last_claimed != 0:
