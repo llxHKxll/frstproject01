@@ -144,7 +144,7 @@ def help_handler(client, message):
 
 @app.on_message(filters.command("profile"))
 def profile_handler(client, message):
-    # Check if the command is replied to a message or tagged with @username
+    # Check if the command is replied to a message or tagged with username
     if message.reply_to_message:
         # If the command is used by replying to another user's message
         target_user = message.reply_to_message.from_user
@@ -184,13 +184,13 @@ def format_time_diff(seconds):
         
         # Send the profile details
         message.reply_text(
-            f"**{user_link}'s Profile :**\n"
-            f"💎 **Level** : {level}\n"
-            f"🎮 **Exp** : {exp}/{level*100}\n"
-            f"💰 **Points** : {points}\n"
-            f"❤️ **Health** : {health}\n\n"
-            f"🕒 **Last Checkin** : {last_activity}\n\n"
-            f"- **You're doing great ! Keep chatting to level up !**"
+          f"**{user_link}'s Profile :**\n"
+          f"💎 **Level** : {level}\n"
+          f"🎮 **Exp** : {exp}/{level*100}\n"
+          f"💰 **Points** : {points}\n"
+          f"❤️ **Health** : {health}\n\n"
+          f"🕒 **Last Checkin** : {last_activity}\n\n"
+          f"- **You're doing great ! Keep chatting to level up !**"
           )
     else:
         message.reply_text(f"Error fetching {target_user.first_name}'s profile. Please try again later or try after using /start !")
