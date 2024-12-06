@@ -1,12 +1,11 @@
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from database.db_manager import get_user
-from pyrogram.errors import UserNotParticipant
 import time
 
-# Admin user ID (change this to the actual bot admin ID)
-BOT_ADMIN_ID = 6329058409  # Replace with actual bot admin's user ID
+# Admin user ID (replace this with the actual admin ID)
+BOT_ADMIN_ID = 6329058409
 
-polls = {}  # Store polls in memory for the sake of simplicity
+polls = {}  # Store polls in memory
 
 def is_bot_admin(user_id):
     """Check if the user is a bot admin."""
@@ -18,24 +17,25 @@ def start_poll(client, message, question, options, expiry_time=None):
         message.reply("You need to be a bot admin to create a poll.")
         return
 
-    poll_id = len(polls) + 1  # Create a new poll ID
+    poll_id = len(polls) + 1  # Create a unique poll ID
     polls[poll_id] = {
         "question": question,
         "options": options,
         "votes": {option: 0 for option in options},
-        "voters": set(),  # Set of user IDs who have voted
-        "expiry_time": time.time() + (expiry_time * 60) if expiry_time else None,  # Expiry time in seconds
+        "voters": set(),
+        "expiry_time": time.time() + (expiry_time * 60) if expiry_time else None,
     }
 
-    # Prepare the inline buttons for options
+    # Inline buttons for voting
     buttons = [
-        [InlineKeyboardButton(option, callback_data=f"vote_{poll_id}_{option}") for option in options]
+        [InlineKeyboardButton(option, callback_data=f"vote_{poll_id}_{option}")]
+        for option in options
     ]
 
-    # Send the poll message to the group
+    # Send poll message
     message.reply_text(
-        text=f"**Poll:** {question}",
-        reply_markup=InlineKeyboardMarkup(buttons)
+        text=f"**Poll ID #{poll_id}**\n{question}",
+        reply_markup=InlineKeyboardMarkup(buttons),
     )
 
 def handle_vote(client, callback_query):
@@ -45,26 +45,28 @@ def handle_vote(client, callback_query):
     vote_option = data[2]
 
     if poll_id not in polls:
-        callback_query.answer("Poll has ended or does not exist.")
+        callback_query.answer("Poll does not exist or has ended.")
         return
 
     poll = polls[poll_id]
 
-    # Check if the poll has expired
+    # Check for expiry
     if poll["expiry_time"] and time.time() > poll["expiry_time"]:
-        callback_query.answer("This poll has expired, you cannot vote anymore.")
+        callback_query.answer("This poll has expired. You cannot vote anymore.")
         return
 
-    # Prevent multiple votes from the same user
+    # Prevent multiple votes
     if callback_query.from_user.id in poll["voters"]:
         callback_query.answer("You've already voted in this poll.")
         return
 
-    # Record the vote
-    poll["votes"][vote_option] += 1
-    poll["voters"].add(callback_query.from_user.id)  # Add user to the voted list
-
-    callback_query.answer(f"Thanks for voting! You voted for: {vote_option}")
+    # Record vote
+    if vote_option in poll["votes"]:
+        poll["votes"][vote_option] += 1
+        poll["voters"].add(callback_query.from_user.id)
+        callback_query.answer(f"Thanks for voting! You voted for: {vote_option}")
+    else:
+        callback_query.answer("Invalid option.")
 
 def show_poll_results(client, message, poll_id):
     """Show the results of the poll."""
@@ -73,9 +75,9 @@ def show_poll_results(client, message, poll_id):
         return
 
     poll = polls[poll_id]
-    results_text = f"**Poll Results for: {poll['question']}**\n\n"
-    
-    for option, vote_count in poll['votes'].items():
+    results_text = f"**Poll Results for ID #{poll_id}**\n{poll['question']}\n\n"
+
+    for option, vote_count in poll["votes"].items():
         results_text += f"{option}: {vote_count} votes\n"
 
     message.reply_text(results_text)
