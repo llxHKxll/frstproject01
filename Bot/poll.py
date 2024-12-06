@@ -1,5 +1,5 @@
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from database.db_manager import get_user
+import re
 import time
 
 # Admin user ID (replace this with the actual admin ID)
@@ -7,9 +7,11 @@ BOT_ADMIN_ID = 6329058409
 
 polls = {}  # Store polls in memory
 
+
 def is_bot_admin(user_id):
     """Check if the user is a bot admin."""
     return user_id == BOT_ADMIN_ID
+
 
 def start_poll(client, message, question, options, expiry_time=None):
     """Start a poll created by bot admin."""
@@ -38,11 +40,12 @@ def start_poll(client, message, question, options, expiry_time=None):
         reply_markup=InlineKeyboardMarkup(buttons),
     )
 
+
 def handle_vote(client, callback_query):
     """Handle voting on a poll."""
     data = callback_query.data.split("_")
     poll_id = int(data[1])
-    vote_option = data[2]
+    vote_option = "_".join(data[2:])
 
     if poll_id not in polls:
         callback_query.answer("Poll does not exist or has ended.")
@@ -67,6 +70,7 @@ def handle_vote(client, callback_query):
         callback_query.answer(f"Thanks for voting! You voted for: {vote_option}")
     else:
         callback_query.answer("Invalid option.")
+
 
 def show_poll_results(client, message, poll_id):
     """Show the results of the poll."""
