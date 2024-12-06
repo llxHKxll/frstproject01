@@ -62,6 +62,83 @@ def start_handler(client, message):
         add_user(user_id, username)
         user_data = get_user(user_id)
 
+@app.on_message(filters.command("daily"))
+def daily_handler(client, message):
+    """Handle the /daily command to give daily rewards."""
+    user_id = message.from_user.id
+    response = claim_daily_reward(user_id)
+    message.reply_text(response)
+
+# Global dictionaries for leaderboard modes and message IDs
+leaderboard_modes = {}  # Tracks current leaderboard type ("points" or "level") for each group
+leaderboard_message_ids = {}  # Tracks message IDs of leaderboard messages for each group
+
+
+@app.on_message(filters.command("leaderboard"))
+async def leaderboard_handler(client, message):
+    """Handle the /leaderboard command."""
+    chat_id = message.chat.id
+
+    # Default to points if no leaderboard mode is set
+    if chat_id not in leaderboard_modes:
+        leaderboard_modes[chat_id] = "points"  # Default mode is points
+
+    leaderboard_type = leaderboard_modes[chat_id]  # Points or level
+
+    # Prepare the leaderboard message and inline buttons
+    leaderboard_text, reply_markup = prepare_leaderboard_message(chat_id, leaderboard_type)
+
+    # Send the leaderboard message
+    sent_message = await message.reply_text(leaderboard_text, reply_markup=reply_markup)
+
+    # Save the message ID for future edits
+    leaderboard_message_ids[chat_id] = sent_message.id
+
+
+@app.on_callback_query(filters.regex("points|level"))
+async def leaderboard_switch_handler(client, callback_query):
+    """Handle the switching between points and level leaderboards."""
+    chat_id = callback_query.message.chat.id
+    leaderboard_type = callback_query.data  # Either "points" or "level"
+
+    # Update the leaderboard mode for the group
+    leaderboard_modes[chat_id] = leaderboard_type
+
+    # Prepare the updated leaderboard message and inline buttons
+    leaderboard_text, reply_markup = prepare_leaderboard_message(chat_id, leaderboard_type)
+
+    # Edit the leaderboard message
+    if chat_id in leaderboard_message_ids:
+        try:
+            await client.edit_message_text(
+                chat_id=chat_id,
+                message_id=leaderboard_message_ids[chat_id],  # Use the stored message ID
+                text=leaderboard_text,
+                reply_markup=reply_markup
+            )
+        except Exception as e:
+            print(f"Error editing leaderboard message: {e}")
+
+    # Acknowledge the callback query to remove the "loading" state
+    await callback_query.answer()
+
+
+@app.on_message(filters.command("help"))
+def help_handler(client, message):
+    # List of available commands and their descriptions
+    help_text = (
+        "Here are the commands you can use with the Kaisen Ranking Bot:\n\n"
+        "/start - Start the bot and set up your profile.\n"
+        "/profile - View your profile or the profile of another user (by replying to their message or tagging them).\n"
+        "/daily - Claim your daily reward.\n"
+        "/help - Show this help message.\n\n"
+        "💬 **Message Tracking**: Send messages in the group to earn experience and level up.\n"
+        "⚡ **Flood Control**: Don't spam! The bot will block you if you send too many messages too quickly.\n"
+        "🏆 **Leaderboard**: Soon to come! Compete with others based on your activity and points.\n"
+    )
+    
+    # Send the help message to the user
+    message.reply_text(help_text)
 
 @app.on_message(filters.command("profile"))
 def profile_handler(client, message):
@@ -99,7 +176,6 @@ def profile_handler(client, message):
     else:
         message.reply_text(f"Error fetching {target_user.first_name}'s profile. Please try again later or try after using /start !")
 
-      
 @app.on_message(filters.text)
 def handle_message(client, message):
   # List of allowed group chat IDs (replace with your actual group IDs)
@@ -120,10 +196,6 @@ def handle_message(client, message):
 
 # Daily reward amount
 DAILY_REWARD = 100
-
-@app.on_message(filters.command("daily"))
-def daily_reward(client, message):
-    user_id = message.from_user.id
     
     # Fetch user data
     user_data = get_user(user_id)
