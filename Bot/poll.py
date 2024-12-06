@@ -1,5 +1,4 @@
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-import re
 import time
 
 # Admin user ID (replace this with the actual admin ID)
