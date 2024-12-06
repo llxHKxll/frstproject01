@@ -144,7 +144,7 @@ def help_handler(client, message):
 
 @app.on_message(filters.command("profile"))
 def profile_handler(client, message):
-    if message.reply_to_message:
+  if message.reply_to_message:
         # If the command is used by replying to another user's message
         target_user = message.reply_to_message.from_user
     elif message.entities and message.entities[0].type == "mention":
