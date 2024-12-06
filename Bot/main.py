@@ -6,7 +6,7 @@ from Bot.flood_control import check_flood
 from Bot.leveling import level_up
 from Bot.daily import claim_daily_reward
 from Bot.leaderboard import update_leaderboard_message, leaderboard_modes, prepare_leaderboard_message  # Import leaderboard functions
-from Bot.poll import start_poll, handle_vote, show_poll_results
+from Bot.poll import start_poll, handle_vote, show_poll_results, BOT_ADMIN_ID
 from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health, connect_db
 
 API_ID = "21989020"
