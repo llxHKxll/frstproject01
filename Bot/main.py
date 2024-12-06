@@ -195,23 +195,6 @@ async def handle_message(client, message):
         return  # Ignore messages outside allowed groups
 
     user_id = message.from_user.id
-
-def get_user(user_id):
-    """Fetch user data from the database."""
-    with connect_db() as conn:
-        c = conn.cursor()
-        c.execute("SELECT user_id, username, points, level, exp, health, last_activity_time, last_claimed FROM users WHERE user_id = ?", (user_id,))
-        return c.fetchone()
-
-def check_flood(user_id):
-    """Flood control check function."""
-    # Implement your flood control logic here (e.g., check timestamp difference from last message)
-    return False  # Placeholder return value
-
-def level_up(user_id, message_text):
-    """Increment user experience and level based on message text."""
-    # You should implement your own leveling logic here.
-    pass
   
     # Flood control logic
     if check_flood(user_id):
