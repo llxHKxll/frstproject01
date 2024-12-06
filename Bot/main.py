@@ -215,7 +215,7 @@ def level_up(user_id, message_text):
   
     # Flood control logic
     if check_flood(user_id):
-        await message.reply("You are sending messages too quickly. Please wait a few seconds!")
+        message.reply("You are sending messages too quickly. Please wait a few seconds!")
     else:
         # Increment experience and level based on the message content
         level_up(user_id, message.text)
