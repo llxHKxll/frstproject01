@@ -196,13 +196,6 @@ async def handle_message(client, message):
 
     user_id = message.from_user.id
 
-    # Flood control logic
-    if check_flood(user_id):
-        await message.reply("You are sending messages too quickly. Please wait a few seconds!")
-    else:
-        # Increment experience and level based on the message content
-        level_up(user_id, message.text)
-
 def get_user(user_id):
     """Fetch user data from the database."""
     with connect_db() as conn:
@@ -218,8 +211,14 @@ def check_flood(user_id):
 def level_up(user_id, message_text):
     """Increment user experience and level based on message text."""
     # You should implement your own leveling logic here.
-    pass 
-
+    pass
+  
+    # Flood control logic
+    if check_flood(user_id):
+        await message.reply("You are sending messages too quickly. Please wait a few seconds!")
+    else:
+        # Increment experience and level based on the message content
+        level_up(user_id, message.text)
 
 if __name__ == "__main__":
     app.run()
