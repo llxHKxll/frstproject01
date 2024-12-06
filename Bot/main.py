@@ -180,8 +180,6 @@ def format_time_diff(seconds):
         user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
         # Create a user link using the user's first name
         user_link = f'<a href="tg://user?id={target_user.id}">{target_user.first_name}</a>'
-        
-        # Send the profile details
         message.reply_text(
           f"**{user_link}'s Profile :**\n"
           f"💎 **Level** : {level}\n"
@@ -213,13 +211,6 @@ def handle_message(client, message):
         level_up(user_id, message.text)
 
     user_id = message.from_user.id
-
-    # Flood control logic
-    if check_flood(user_id):
-       message.reply("You are sending messages too quickly. Please wait a few seconds!")
-    else:
-        # Increment experience and level based on the message content
-        level_up(user_id, message.text)
 
 def get_user(user_id):
     """Fetch user data from the database."""
