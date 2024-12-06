@@ -78,7 +78,7 @@ leaderboard_modes = {}  # Tracks current leaderboard type ("points" or "level") 
 leaderboard_message_ids = {}  # Tracks message IDs of leaderboard messages for each group
 
 # Admin user ID (change this to the actual bot admin ID)
-BOT_ADMIN_ID = 123456789  # Replace with actual bot admin's user ID
+BOT_ADMIN_ID = 6329058409  # Replace with actual bot admin's user ID
 
 polls = {}  # Store polls in memory for the sake of simplicity
 
