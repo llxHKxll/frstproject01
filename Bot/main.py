@@ -198,7 +198,7 @@ async def handle_message(client, message):
   
     # Flood control logic
     if check_flood(user_id):
-        message.reply("You are sending messages too quickly. Please wait a few seconds!")
+        await message.reply("You are sending messages too quickly. Please wait a few seconds!")
     else:
         # Increment experience and level based on the message content
         level_up(user_id, message.text)
