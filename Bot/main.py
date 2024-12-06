@@ -169,22 +169,22 @@ async def profile_handler(client, message):
         user_link = f'<a href="tg://user?id={target_user.id}">{target_user.first_name}</a>'
 
 # Format the last activity time
-        time_diff = int(time()) - last_activity_time
-        last_activity = format_time_diff(time_diff)
+time_diff = int(time()) - last_activity_time
+last_activity = format_time_diff(time_diff)
 
 def format_time_diff(seconds):
-    """Convert seconds into a readable time format."""
-    if seconds < 60:
-        return f"{seconds} seconds ago"
-    elif seconds < 3600:
-        return f"{seconds // 60} minutes ago"
-    elif seconds < 86400:
-        return f"{seconds // 3600} hours ago"
-    else:
-        return f"{seconds // 86400} days ago"
-      
-        profile_text = f"""
-        **{user_link}'s Profile:**
+    """Convert seconds into a readable time format."""
+    if seconds < 60:
+        return f"{seconds} seconds ago"
+    elif seconds < 3600:
+        return f"{seconds // 60} minutes ago"
+    elif seconds < 86400:
+        return f"{seconds // 3600} hours ago"
+    else:
+        return f"{seconds // 86400} days ago"
+
+profile_text = f"""
+**{user_link}'s Profile:**
 💎 **Level** : {level}
 🎮 **Exp** : {exp}/{level * 100}
 💰 **Points** : {points}
@@ -192,8 +192,8 @@ def format_time_diff(seconds):
 
 ⏳ **Last Checkin** : {last_activity}
 
-- **You're doing great ! Keep chatting to level up !**
-        """
+- **You're doing great! Keep chatting to level up!**
+"""
 
         # Send the profile details
         await message.reply_text(profile_text)
