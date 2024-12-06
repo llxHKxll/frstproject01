@@ -238,7 +238,7 @@ with connect_db() as conn:
         conn.commit()
 
     # Inform the user that they've successfully claimed their reward
-    message.reply(f"🎉 You've successfully claimed your daily reward of {DAILY_REWARD} points! Your new point balance is {new_points}.")
+message.reply(f"🎉 You've successfully claimed your daily reward of {DAILY_REWARD} points! Your new point balance is {new_points}.")
 
 if __name__ == "__main__":
     app.run()
