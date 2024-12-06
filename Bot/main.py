@@ -215,6 +215,5 @@ def level_up(user_id, message_text):
     # You should implement your own leveling logic here.
     pass 
 
-
 if __name__ == "__main__":
     app.run()
