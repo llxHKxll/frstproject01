@@ -130,13 +130,14 @@ def help_handler(client, message):
     # List of available commands and their descriptions
     help_text = (
         "Here are the commands you can use with the Kaisen Ranking Bot:\n\n"
-        "/start - Start the bot and set up your profile.\n"
-        "/profile - View your profile or the profile of another user (by replying to their message or tagging them).\n"
-        "/daily - Claim your daily reward.\n"
-        "/help - Show this help message.\n\n"
-        "💬 **Message Tracking**: Send messages in the group to earn experience and level up.\n"
-        "⚡ **Flood Control**: Don't spam! The bot will block you if you send too many messages too quickly.\n"
-        "🏆 **Leaderboard**: Soon to come! Compete with others based on your activity and points.\n"
+        "💬 : General Commands\n"
+        "/start - ɪɴɪᴛᴀʟɪᴢᴇ ʏᴏᴜʀ ᴘʀᴏғɪʟᴇ\n"
+        "/profile - ᴠɪᴇᴡ ᴘʀᴏғɪʟᴇ\n"
+        "/help - ᴅɪsᴘʟᴀʏ ᴛʜɪs ʜᴇʟᴘ ᴍᴇɴᴜ\n"
+        "/daily - ᴄʟᴀɪᴍ ʏᴏᴜʀ ᴅᴀɪʟʏ ʀᴇᴡᴀʀᴅ ᴘᴏɪɴᴛs !\n\n"
+        "🎯 **: Tips**\n"
+        "- Claim your daily reward every 24 hours to keep progressing faster.\n"
+        "- Avoid spamming, or the flood control will block your commands temporarily.\n"
     )
     
     # Send the help message to the user
