@@ -6,7 +6,7 @@ def level_up(user_id, message_text):
     
     if user_data:
         # Exp based on message length
-        exp_gained = len(message_text.split())  # Experience based on word count
+        exp_gained = 2  # Experience based on word count
         new_exp = user_data[4] + exp_gained  # Adding the gained exp to current exp
         new_level = new_exp // 100  # Every 100 exp points increase the level
 
