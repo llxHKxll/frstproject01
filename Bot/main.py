@@ -7,7 +7,7 @@ from database.db_manager import create_db, add_user, ensure_user_exists, get_use
 
 API_ID = "21989020"
 API_HASH = "3959305ae244126404702aa5068ba15c"
-BOT_TOKEN = "7410194228:AAGyVEIgppL2tusKBIG_f-PI0XMwuD4uY1Y"
+BOT_TOKEN = "8141351816:AAG1_YB0l88X0SLAHnos9iODdZuCdNEfuFo"
 
 app = Client(
   name="pyxn",
@@ -31,7 +31,7 @@ def start_handler(client, message):
     # Fetch user data from the database
     user_data = get_user(user_id)
     if user_data:
-        user_id, username, points, level, exp, health = user_data
+        user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
 
       # Create a user link using the user's first name
         user_link = f'<a href="tg://user?id={user_id}">{first_name}</a>'
@@ -84,7 +84,7 @@ def profile_handler(client, message):
     # Fetch user data from the database for the target user
     user_data = get_user(target_user.id)
     if user_data:
-        user_id, username, points, level, exp, health = user_data
+        user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
         # Create a user link using the user's first name
         user_link = f'<a href="tg://user?id={target_user.id}">{target_user.first_name}</a>'
         
@@ -131,7 +131,7 @@ def daily_reward(client, message):
         message.reply("Error: User not found in the database.")
         return
 
-    user_id, username, points, level, exp, health, last_claimed = user_data
+    user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
     
     # Get the current time
     current_time = time.time()  # Get current time in seconds
