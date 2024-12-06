@@ -83,15 +83,20 @@ def poll_handler(client, message):
         message.reply("You need to be a bot admin to create a poll.")
         return
 
-    # Example: /poll "Your question?" "Option 1" "Option 2" "Option 3" 5
-    command_parts = message.text.split(" ", 4)
-    if len(command_parts) < 4:
-        message.reply("Usage: /poll <question> <option1> <option2> <option3> ... <expiry_time_in_minutes>")
+    # Parse the command
+    parts = message.text.split("\"")
+    if len(parts) < 3:
+        message.reply("Usage: /poll \"<question>\" \"<option1>\" \"<option2>\" ... [expiry_time_in_minutes]")
         return
 
-    question = command_parts[1]
-    options = command_parts[2].split(" ")  # Split options by space
-    expiry_time = int(command_parts[4]) if len(command_parts) > 4 else None
+    question = parts[1]  # Question inside quotes
+    options = [opt.strip() for opt in parts[2].split() if opt.strip()]  # Options split by spaces
+    expiry_time = int(parts[-1]) if parts[-1].isdigit() else None
+
+    # Validate options
+    if len(options) < 2:
+        message.reply("Please provide at least two options for the poll.")
+        return
 
     # Start the poll
     start_poll(client, message, question, options, expiry_time)
@@ -107,9 +112,9 @@ def results_handler(client, message):
     try:
         poll_id = int(message.text.split()[1])  # Extract poll_id from the message
         show_poll_results(client, message, poll_id)
-    except ValueError:
+    except (ValueError, IndexError):
         message.reply("Usage: /results <poll_id>")
-
+      
 # Global dictionaries for leaderboard modes and message IDs
 leaderboard_modes = {}  # Tracks current leaderboard type ("points" or "level") for each group
 leaderboard_message_ids = {}  # Tracks message IDs of leaderboard messages for each group
