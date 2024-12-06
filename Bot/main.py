@@ -222,7 +222,7 @@ if last_claimed != 0:
             return
 
     # Give the user their daily reward
-    new_points = points + DAILY_REWARD
+new_points = points + DAILY_REWARD
 
     # Update the user's points and last claim time
     with connect_db() as conn:
