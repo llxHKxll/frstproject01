@@ -209,7 +209,7 @@ user_id, username, points, level, exp, health, last_activity_time, last_claimed 
 current_time = time.time()  # Get current time in seconds
 
     # Check if the user has already claimed their daily reward
-    if last_claimed != 0:
+if last_claimed != 0:
         # Calculate the time difference between now and last claim
         time_difference = current_time - last_claimed
 
