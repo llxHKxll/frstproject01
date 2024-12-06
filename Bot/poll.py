@@ -1,4 +1,4 @@
-from pyrogram import InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from database.db_manager import get_user
 from pyrogram.errors import UserNotParticipant
 import time
