@@ -74,6 +74,8 @@ def daily_handler(client, message):
     response = claim_daily_reward(user_id)
     message.reply_text(response)
 
+import re
+
 @app.on_message(filters.command("poll"))
 def poll_handler(client, message):
     """Handle the /poll command to create polls."""
@@ -101,11 +103,12 @@ def poll_handler(client, message):
     options_and_time = match.group(2).strip()
     options = re.findall(r'"(.*?)"', options_and_time)
 
-    # Extract expiry time (last item if numeric)
+    # Extract expiry time (last item if numeric and not part of the options)
     expiry_time = None
-    if options_and_time.split()[-1].isdigit():
-        expiry_time = int(options_and_time.split()[-1])
-        options = options[:-1]  # Remove the expiry time from options
+    remaining_text = options_and_time.split(maxsplit=len(options))
+    if remaining_text and remaining_text[-1].isdigit():
+        expiry_time = int(remaining_text[-1])
+        options = options[:-1]  # Remove expiry time from options
 
     # Validate options
     if len(options) < 2:
