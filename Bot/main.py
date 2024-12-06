@@ -87,28 +87,27 @@ def poll_handler(client, message):
         return
 
     # Parse the command
-    command_text = message.text.split(maxsplit=1)
-    if len(command_text) < 2:
+    command_text = message.text[len("/poll "):].strip()  # Remove command prefix
+    if not command_text.startswith("\"") or "\"" not in command_text[1:]:
         message.reply("Usage: /poll \"<question>\" \"<option1>\" \"<option2>\" ... [expiry_time_in_minutes]")
         return
 
-    command_body = command_text[1]
-    # Extract question and options using regex
-    match = re.match(r'"(.*?)"(.*)', command_body)
-    if not match:
-        message.reply("Invalid poll format. Ensure the question and options are in quotes.")
-        return
+    # Extract question
+    question_end_index = command_text.index("\"", 1)  # Find closing quote for the question
+    question = command_text[1:question_end_index].strip()
 
-    question = match.group(1).strip()
-    options_and_time = match.group(2).strip()
-    options = re.findall(r'"(.*?)"', options_and_time)
+    # Extract remaining text (options and expiry time)
+    remaining_text = command_text[question_end_index + 1:].strip()
 
-    # Extract expiry time (last item if numeric and not part of the options)
+    # Use regex to extract options in quotes
+    options = re.findall(r'"([^"]+)"', remaining_text)
+
+    # Extract expiry time if present (non-quoted trailing number)
     expiry_time = None
-    remaining_text = options_and_time.split(maxsplit=len(options))
-    if remaining_text and remaining_text[-1].isdigit():
-        expiry_time = int(remaining_text[-1])
-        options = options[:-1]  # Remove expiry time from options
+    if remaining_text.split()[-1].isdigit():
+        expiry_time = int(remaining_text.split()[-1])
+        if len(options) > 1:  # Ensure the last number isn't misinterpreted as an option
+            options.pop()
 
     # Validate options
     if len(options) < 2:
