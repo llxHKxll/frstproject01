@@ -161,16 +161,35 @@ async def profile_handler(client, message):
         await message.reply("You can't get the profile of a bot.")
         return
 
-        # Fetch user data from the database for the target user
+    # Fetch user data from the database for the target user
     user_data = get_user(target_user.id)
     if user_data:
         user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
+
         # Create a user link using the user's first name
         user_link = f'<a href="tg://user?id={target_user.id}">{target_user.first_name}</a>'
 
-# Format the last activity time
-time_diff = int(time()) - last_activity_time
-last_activity = format_time_diff(time_diff)
+        # Format the last activity time
+        time_diff = int(time()) - last_activity_time
+        last_activity = format_time_diff(time_diff)
+
+        # Prepare the profile text
+        profile_text = f"""
+        **{user_link}'s Profile:**
+        💎 **Level** : {level}
+        🎮 **Exp** : {exp}/{level * 100}
+        💰 **Points** : {points}
+        ❤️ **Health** : {health}%
+        ⏳ **Last Checkin** : {last_activity}
+        - **You're doing great! Keep chatting to level up!**
+        """
+
+        # Send the profile details
+        await message.reply_text(profile_text)
+    else:
+        # If user data doesn't exist
+        await message.reply_text(f"Error fetching {target_user.first_name}'s profile. Please try again later or use /start!")
+
 
 def format_time_diff(seconds):
     """Convert seconds into a readable time format."""
@@ -182,24 +201,6 @@ def format_time_diff(seconds):
         return f"{seconds // 3600} hours ago"
     else:
         return f"{seconds // 86400} days ago"
-
-profile_text = f"""
-**{user_link}'s Profile:**
-💎 **Level** : {level}
-🎮 **Exp** : {exp}/{level * 100}
-💰 **Points** : {points}
-❤️ **Health** : {health}%
-
-⏳ **Last Checkin** : {last_activity}
-
-- **You're doing great! Keep chatting to level up!**
-"""
-
-        # Send the profile details
-        await message.reply_text(profile_text)
-    else:
-        # If user data doesn't exist
-        await message.reply_text(f"Error fetching {target_user.first_name}'s profile. Please try again later or use /start!")
 
 @app.on_message(filters.text)
 async def handle_message(client, message):
