@@ -83,15 +83,15 @@ def poll_handler(client, message):
         message.reply("You need to be a bot admin to create a poll.")
         return
 
-    # Parse the command
-    parts = message.text.split("\"")
-    if len(parts) < 3:
+    # Parse the command using regex to handle quoted text
+    match = re.match(r'^/poll "(.*?)"((?: ".*?")+)?(?: (\d+))?$', message.text)
+    if not match:
         message.reply("Usage: /poll \"<question>\" \"<option1>\" \"<option2>\" ... [expiry_time_in_minutes]")
         return
 
-    question = parts[1]  # Question inside quotes
-    options = [opt.strip() for opt in parts[2].split() if opt.strip()]  # Options split by spaces
-    expiry_time = int(parts[-1]) if parts[-1].isdigit() else None
+    question = match.group(1)  # Extract question
+    options = re.findall(r'"(.*?)"', match.group(2)) if match.group(2) else []  # Extract options
+    expiry_time = int(match.group(3)) if match.group(3) else None  # Extract expiry time
 
     # Validate options
     if len(options) < 2:
