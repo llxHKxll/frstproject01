@@ -225,7 +225,7 @@ if last_claimed != 0:
 new_points = points + DAILY_REWARD
 
     # Update the user's points and last claim time
-    with connect_db() as conn:
+  with connect_db() as conn:
         cursor = conn.cursor()
         cursor.execute(
             """
