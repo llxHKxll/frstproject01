@@ -1,16 +1,19 @@
-import time
+from datetime import datetime
+from time import time
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from Bot.flood_control import check_flood
 from Bot.leveling import level_up
-from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health, update_user_data, connect_db
+from Bot.daily import claim_daily_reward
+from Bot.leaderboard import update_leaderboard_message, leaderboard_modes, prepare_leaderboard_message  # Import leaderboard functions
+from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health, connect_db
 
 API_ID = "21989020"
 API_HASH = "3959305ae244126404702aa5068ba15c"
 BOT_TOKEN = "8141351816:AAG1_YB0l88X0SLAHnos9iODdZuCdNEfuFo"
 
 app = Client(
-  name="pyxn",
+  name="Kaisen Ranking Bot",
   api_id=API_ID,
   api_hash=API_HASH,
   bot_token=BOT_TOKEN
@@ -122,7 +125,6 @@ async def leaderboard_switch_handler(client, callback_query):
     # Acknowledge the callback query to remove the "loading" state
     await callback_query.answer()
 
-
 @app.on_message(filters.command("help"))
 def help_handler(client, message):
     # List of available commands and their descriptions
@@ -141,7 +143,8 @@ def help_handler(client, message):
     message.reply_text(help_text)
 
 @app.on_message(filters.command("profile"))
-def profile_handler(client, message):
+async def profile_handler(client, message):
+    """Handle the /profile command."""
     # Check if the command is replied to a message or tagged with @username
     if message.reply_to_message:
         # If the command is used by replying to another user's message
@@ -155,30 +158,36 @@ def profile_handler(client, message):
 
     # Check if the target is a bot
     if target_user.is_bot:
-        message.reply("You can't get the profile of a bot.")
+        await message.reply("You can't get the profile of a bot.")
         return
 
-    # Fetch user data from the database for the target user
+        # Fetch user data from the database for the target user
     user_data = get_user(target_user.id)
     if user_data:
         user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
         # Create a user link using the user's first name
         user_link = f'<a href="tg://user?id={target_user.id}">{target_user.first_name}</a>'
-        
+
+        profile_text = f"""
+        **{user_link}'s Profile:**
+💎 **Level** : {level}
+🎮 **Exp** : {exp}/{level * 100}
+💰 **Points** : {points}
+❤️ **Health** : {health}%
+
+- **You're doing great ! Keep chatting to level up !**
+        """
+
         # Send the profile details
-        message.reply_text(
-            f"**{user_link}'s Profile :**\n"
-            f"Points: {points}\n"
-            f"Level: {level}\n"
-            f"EXP: {exp}\n"
-            f"Health: {health}"
-        )
+        await message.reply_text(profile_text)
     else:
-        message.reply_text(f"Error fetching {target_user.first_name}'s profile. Please try again later or try after using /start !")
+        # If user data doesn't exist
+        await message.reply_text(f"Error fetching {target_user.first_name}'s profile. Please try again later or use /start!")
 
 @app.on_message(filters.text)
-def handle_message(client, message):
-  # List of allowed group chat IDs (replace with your actual group IDs)
+async def handle_message(client, message):
+    """Handle the flood control and leveling up based on chat activity."""
+    # List of allowed group chat IDs (replace with your actual group IDs)
     ALLOWED_GROUPS = [-1002135192853, -1002324159284]  # Add your group IDs here
 
     # Ensure the message is from an allowed group
@@ -189,56 +198,28 @@ def handle_message(client, message):
 
     # Flood control logic
     if check_flood(user_id):
-        message.reply("You are sending messages too quickly. Please wait a few seconds.")
+        await message.reply("You are sending messages too quickly. Please wait a few seconds!")
     else:
-        # Increment experience and level
-        level_up(user_id, message.text) 
+        # Increment experience and level based on the message content
+        level_up(user_id, message.text)
 
-# Daily reward amount
-DAILY_REWARD = 100
-    
-# Fetch user data
-user_data = get_user(user_id)
-if not user_data:
-    message.reply("Error: User not found in the database.")
-    return
+def get_user(user_id):
+    """Fetch user data from the database."""
+    with connect_db() as conn:
+        c = conn.cursor()
+        c.execute("SELECT user_id, username, points, level, exp, health, last_activity_time, last_claimed FROM users WHERE user_id = ?", (user_id,))
+        return c.fetchone()
 
-user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
+def check_flood(user_id):
+    """Flood control check function."""
+    # Implement your flood control logic here (e.g., check timestamp difference from last message)
+    return False  # Placeholder return value
 
-# Get the current time
-current_time = time.time()  # Get current time in seconds
+def level_up(user_id, message_text):
+    """Increment user experience and level based on message text."""
+    # You should implement your own leveling logic here.
+    pass 
 
-# Check if the user has already claimed their daily reward
-if last_claimed != 0:
-    # Calculate the time difference between now and last claim
-    time_difference = current_time - last_claimed
-
-    # If less than 24 hours, the user can't claim again
-    if time_difference < 86400:  # 86400 seconds = 24 hours
-        remaining_time = 86400 - time_difference  # Time left to claim
-        remaining_hours = remaining_time // 3600
-        remaining_minutes = (remaining_time % 3600) // 60
-        message.reply(f"You've already claimed your reward. Please wait {int(remaining_hours)} hours and {int(remaining_minutes)} minutes to claim again.")
-        return
-
-# Give the user their daily reward
-new_points = points + DAILY_REWARD
-
-# Update the user's points and last claim time
-with connect_db() as conn:
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        UPDATE users
-        SET points = ?, last_claimed = ?
-        WHERE user_id = ?
-        """,
-        (new_points, current_time, user_id)
-    )
-    conn.commit()
-
-# Inform the user that they've successfully claimed their reward
-message.reply(f"🎉 You've successfully claimed your daily reward of {DAILY_REWARD} points! Your new point balance is {new_points}.")
 
 if __name__ == "__main__":
     app.run()
