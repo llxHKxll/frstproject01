@@ -203,7 +203,7 @@ if not user_data:
     message.reply("Error: User not found in the database.")
 return
 
-    user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
+user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
     
     # Get the current time
     current_time = time.time()  # Get current time in seconds
