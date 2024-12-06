@@ -201,7 +201,7 @@ DAILY_REWARD = 100
 user_data = get_user(user_id)
 if not user_data:
     message.reply("Error: User not found in the database.")
-    return
+  return
 
     user_id, username, points, level, exp, health, last_activity_time, last_claimed = user_data
     
