@@ -1,5 +1,5 @@
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from database.db_manager import get_user, update_points, update_health
+from database.db_manager import get_user, update_points, update_health, connect_db
 import time
 
 # Admin user ID (replace this with the actual admin ID)
