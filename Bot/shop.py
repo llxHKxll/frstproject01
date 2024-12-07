@@ -8,7 +8,7 @@ BOT_ADMIN_ID = 6329058409
 # Example shop items
 SHOP_ITEMS = {
     1: {
-        "name": "2x XP Booster (24 Hours)",
+        "name": "XP Booster",
         "price": 300,
         "description": "Boost your XP gain for 24 hours.",
         "condition": "no_active_booster",
