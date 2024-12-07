@@ -156,22 +156,39 @@ def shop_purchase_handler(client, callback_query):
     callback_query.answer(response, show_alert=True)
 
 @app.on_message(filters.command("battle"))
-def battle_handler(client, message):
-    """Handle battle challenge."""
-    challenger_id = message.from_user.id
-    opponent_id = message.reply_to_message.from_user.id if message.reply_to_message else None
-
-    if not opponent_id:
-        message.reply("You need to reply to a user to challenge them.")
+def battle_challenge(client, message):
+    """Handle the battle challenge."""
+    user_id = message.from_user.id
+    target_user_id = message.reply_to_message.from_user.id if message.reply_to_message else None
+    
+    if not target_user_id:
+        message.reply("You need to reply to a user to challenge them!")
         return
 
-    start_battle(client, message, challenger_id, opponent_id)
+    if target_user_id == bot_user_id:  # If trying to challenge the bot
+        message.reply("You can't challenge the bot!")
+        return
 
+    if target_user_id in active_battles:  # If target is in another battle
+        message.reply(f"@User{target_user_id} is already in a battle. Please wait until it ends!")
+        return
 
-@app.on_callback_query(filters.regex(r"battle_action_.*"))
-def battle_action_handler(client, callback_query):
-    """Handle battle actions."""
-    handle_battle_action(client, callback_query)
+    # Ask user to confirm
+    markup = InlineKeyboardMarkup([
+        [InlineKeyboardButton("Accept", callback_data=f"battle_accept_{user_id}")],
+        [InlineKeyboardButton("Decline", callback_data=f"battle_decline_{user_id}")]
+    ])
+    message.reply(f"@User{user_id} challenged you to a battle! Accept or decline?", reply_markup=markup)
+
+@app.on_callback_query(filters.regex(r"battle_accept_(\d+)"))
+def battle_accept(client, callback_query):
+    """Handle battle acceptance."""
+    challenger_id = int(callback_query.data.split("_")[1])
+    challenger_user = get_user(challenger_id)
+    
+    # Start battle
+    battle_message = start_battle(challenger_id, callback_query.from_user.id)
+    callback_query.message.edit_text(battle_message)
 
 # Global dictionaries for leaderboard modes and message IDs
 leaderboard_modes = {}  # Tracks current leaderboard type ("points" or "level") for each group
