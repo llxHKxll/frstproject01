@@ -9,7 +9,6 @@ from Bot.daily import claim_daily_reward
 from Bot.leaderboard import update_leaderboard_message, leaderboard_modes, prepare_leaderboard_message  # Import leaderboard functions
 from Bot.poll import start_poll, handle_vote, show_poll_results, BOT_ADMIN_ID
 from Bot.shop import get_shop_page, handle_purchase
-from Bot.battle import start_battle, handle_turn
 from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health, connect_db
 
 API_ID = "21989020"
@@ -154,49 +153,6 @@ def shop_purchase_handler(client, callback_query):
     item_id = int(callback_query.data.split("_")[-1])
     response = handle_purchase(user_id, item_id)
     callback_query.answer(response, show_alert=True)
-
-@app.on_message(filters.command("battle"))
-def battle_challenge(client, message):
-    """Handle the battle challenge."""
-    user_id = message.from_user.id
-    target_user_id = message.reply_to_message.from_user.id if message.reply_to_message else None
-    
-    if not target_user_id:
-        message.reply("You need to reply to a user to challenge them!")
-        return
-
-    if target_user_id == bot_user_id:  # If trying to challenge the bot
-        message.reply("You can't challenge the bot!")
-        return
-
-    # Check if the target user is already in a battle
-    battle = get_battle_by_user(target_user_id)
-    if battle:
-        message.reply(f"@User{target_user_id} is already in a battle. Please wait until it ends!")
-        return
-
-    # Ask user to confirm
-    markup = InlineKeyboardMarkup([
-        [InlineKeyboardButton("Accept", callback_data=f"battle_accept_{user_id}_{target_user_id}")],
-        [InlineKeyboardButton("Decline", callback_data=f"battle_decline_{user_id}_{target_user_id}")]
-    ])
-    message.reply(f"@User{user_id} challenged you to a battle! Accept or decline?", reply_markup=markup)
-
-@app.on_callback_query(filters.regex(r"battle_accept_(\d+)_(\d+)"))
-def battle_accept(client, callback_query):
-    """Handle battle acceptance."""
-    challenger_id = int(callback_query.data.split("_")[1])
-    target_id = int(callback_query.data.split("_")[2])
-    
-    # Start battle
-    start_battle_in_db(challenger_id, target_id)
-    
-    battle_message = f"Battle started! @User{challenger_id} vs @User{target_id}\nFirst move is @User{challenger_id}'s!"
-    callback_query.message.edit_text(battle_message)
-    
-    # Start battle
-    battle_message = start_battle(challenger_id, callback_query.from_user.id)
-    callback_query.message.edit_text(battle_message)
 
 # Global dictionaries for leaderboard modes and message IDs
 leaderboard_modes = {}  # Tracks current leaderboard type ("points" or "level") for each group
