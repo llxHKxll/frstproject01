@@ -1,6 +1,5 @@
 import sqlite3
 import os
-import random
 
 # Ensure the 'database' directory exists
 database_dir = os.path.join(os.path.dirname(__file__), 'database')
@@ -104,56 +103,6 @@ def update_health(user_id, health):
             """,
             (health, user_id),
         )
-        conn.commit()
-
-def create_battle_table():
-    """Create the battle table to track ongoing battles."""
-    with connect_db() as conn:
-        c = conn.cursor()
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS battles (
-                battle_id INTEGER PRIMARY KEY,
-                user_a INTEGER,
-                user_b INTEGER,
-                user_a_health INTEGER,
-                user_b_health INTEGER,
-                user_a_turn BOOLEAN,
-                winner INTEGER,
-                start_time INTEGER,
-                status TEXT
-            )
-        ''')
-        conn.commit()
-
-def start_battle_in_db(user_a, user_b):
-    """Start a battle and save it to the database."""
-    with connect_db() as conn:
-        c = conn.cursor()
-        start_time = int(time.time())
-        c.execute('''
-            INSERT INTO battles (user_a, user_b, user_a_health, user_b_health, user_a_turn, start_time, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (user_a, user_b, 100, 100, True, start_time, 'ongoing'))
-        conn.commit()
-
-def get_battle_by_user(user_id):
-    """Retrieve the battle record for a user."""
-    with connect_db() as conn:
-        c = conn.cursor()
-        c.execute('''
-            SELECT * FROM battles WHERE user_a = ? OR user_b = ? AND status = 'ongoing'
-        ''', (user_id, user_id))
-        return c.fetchone()
-        
-def update_battle_status(battle_id, status, winner=None):
-    """Update the status of a battle."""
-    with connect_db() as conn:
-        c = conn.cursor()
-        c.execute('''
-            UPDATE battles
-            SET status = ?, winner = ?
-            WHERE battle_id = ?
-        ''', (status, winner, battle_id))
         conn.commit()
 
 def update_user_data(user_id, new_exp, new_level):
