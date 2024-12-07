@@ -31,7 +31,9 @@ def create_db():
                 last_activity_time INTEGER DEFAULT 0,
                 last_claimed INTEGER DEFAULT 0,
                 chat_id INTEGER DEFAULT 0,
-                xp_booster_expiry INTEGER DEFAULT 0  -- Add this column to track booster expiry
+                xp_booster_expiry INTEGER DEFAULT 0,  -- Add this column to track booster expiry
+                kills_today INTEGER DEFAULT 0,
+                last_kill_time INTEGER DEFAULT 0
             )
         ''')  
         conn.commit()
@@ -42,10 +44,10 @@ def add_user(user_id, username=None):
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT OR IGNORE INTO users (user_id, username, points, level, exp, health, last_activity_time, last_claimed, chat_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR IGNORE INTO users (user_id, username, points, level, exp, health, last_activity_time, last_claimed, chat_id, kills_today, last_kill_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (user_id, username or "Unknown", 10000, 1, 0, 100, 0, 0, chat_id)  # Add last_claimed as 0
+            (user_id, username or "Unknown", 10000, 1, 0, 100, 0, 0, chat_id, 0, 0)  # Add last_claimed as 0
         )
         conn.commit()
         print(f"Added user: {user_id}, {username}")  # Debugging line
