@@ -1,6 +1,7 @@
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from random import randint
 import time
+from database.db_manager import update_points, update_user_data
 
 active_battles = {}  # To track ongoing battles (format: {user_id: opponent_id})
 
@@ -9,7 +10,7 @@ def start_battle(client, message, challenger_id, opponent_id):
     if challenger_id in active_battles or opponent_id in active_battles:
         opponent_in_battle = active_battles.get(opponent_id)
         message.reply(
-            f"@{message.reply_to_message.from_user.username} is already in a battle with @{opponent_in_battle}. Please wait for their battle to finish."
+            f"@{message.reply_to_message.from_user.username} is already in a battle. Please wait for their battle to finish."
         )
         return
 
@@ -22,14 +23,15 @@ def start_battle(client, message, challenger_id, opponent_id):
             "id": challenger_id,
             "username": message.from_user.username,
             "health": 100,
+            "last_special_move_time": 0,
         },
         "opponent": {
             "id": opponent_id,
             "username": message.reply_to_message.from_user.username,
             "health": 100,
+            "last_special_move_time": 0,
         },
         "turn": challenger_id,  # Start with the challenger
-        "last_turn_time": time.time(),
     }
 
     # Send battle start message
@@ -81,6 +83,7 @@ def handle_battle_action(client, callback_query):
     # Process action
     opponent = "challenger" if battle_data["opponent"]["id"] == user_id else "opponent"
     player = "challenger" if battle_data["challenger"]["id"] == user_id else "opponent"
+    action_text = ""
 
     if data == "attack":
         damage = randint(10, 35)
@@ -91,16 +94,23 @@ def handle_battle_action(client, callback_query):
         battle_data[opponent]["health"] -= damage
         action_text = f"@{battle_data[player]['username']} defended, reducing damage to {damage} HP!"
     elif data == "special":
+        current_time = time.time()
+        last_special_time = battle_data[player]["last_special_move_time"]
+
+        # Check cooldown for special move
+        if current_time - last_special_time < 15:
+            cooldown_remaining = 15 - int(current_time - last_special_time)
+            callback_query.answer(f"Special Move is on cooldown. Wait {cooldown_remaining} seconds.")
+            return
+
         damage = randint(25, 50)
         battle_data[opponent]["health"] -= damage
+        battle_data[player]["last_special_move_time"] = current_time
         action_text = f"@{battle_data[player]['username']} used a special move for {damage} HP damage!"
 
     # Check for winner
     if battle_data[opponent]["health"] <= 0:
-        callback_query.message.reply_text(
-            f"🎉 **{battle_data[player]['username']} wins the battle!**\n\n"
-            f"@{battle_data[opponent]['username']} is defeated!"
-        )
+        reward_winner(callback_query, battle_data, player)
         end_battle(battle_data)
         return
 
@@ -113,16 +123,34 @@ def handle_battle_action(client, callback_query):
     )
 
 
+def reward_winner(callback_query, battle_data, winner):
+    """Reward the winning player with points and experience."""
+    winner_data = battle_data[winner]
+    points_reward = randint(200, 300)
+    exp_reward = randint(20, 100)
+
+    # Update database for the winner
+    update_points(winner_data["id"], points_reward)
+    update_user_data(winner_data["id"], new_exp=exp_reward, new_level=None)
+
+    # Announce winner and rewards
+    callback_query.message.reply_text(
+        f"🎉 **{winner_data['username']} wins the battle!** 🎉\n\n"
+        f"🏆 **Rewards:**\n"
+        f"- {points_reward} Points\n"
+        f"- {exp_reward} EXP"
+    )
+
+
 def get_battle_data(user_id):
     """Retrieve the battle data for a user."""
     opponent_id = active_battles.get(user_id)
     if not opponent_id:
         return None
     return {
-        "challenger": {"id": user_id, "username": "Challenger", "health": 100},
-        "opponent": {"id": opponent_id, "username": "Opponent", "health": 100},
+        "challenger": {"id": user_id, "username": "Challenger", "health": 100, "last_special_move_time": 0},
+        "opponent": {"id": opponent_id, "username": "Opponent", "health": 100, "last_special_move_time": 0},
         "turn": user_id,
-        "last_turn_time": time.time(),
     }
 
 
