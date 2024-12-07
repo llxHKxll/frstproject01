@@ -1,163 +1,66 @@
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from random import randint
+import random
 import time
-from database.db_manager import update_points, update_user_data
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from database.db_manager import get_user, update_points, update_health, deduct_health
 
-active_battles = {}  # To track ongoing battles (format: {user_id: opponent_id})
+# Store active battles
+active_battles = {}
 
-def start_battle(client, message, challenger_id, opponent_id):
-    """Start a new battle if both players are available."""
-    if challenger_id in active_battles or opponent_id in active_battles:
-        opponent_in_battle = active_battles.get(opponent_id)
-        message.reply(
-            f"@{message.reply_to_message.from_user.username} is already in a battle. Please wait for their battle to finish."
-        )
-        return
-
-    # Initialize battle data
-    active_battles[challenger_id] = opponent_id
-    active_battles[opponent_id] = challenger_id
-
-    battle_data = {
-        "challenger": {
-            "id": challenger_id,
-            "username": message.from_user.username,
-            "health": 100,
-            "last_special_move_time": 0,
-        },
-        "opponent": {
-            "id": opponent_id,
-            "username": message.reply_to_message.from_user.username,
-            "health": 100,
-            "last_special_move_time": 0,
-        },
-        "turn": challenger_id,  # Start with the challenger
+def start_battle(user_a, user_b):
+    """Start the battle between two users."""
+    active_battles[user_a] = {
+        "opponent": user_b,
+        "turn": user_a,
+        "user_a_health": 100,
+        "user_b_health": 100,
+        "user_a_boost": False,  # No active boost
+        "user_b_boost": False,
+        "user_a_special_move": 0,
+        "user_b_special_move": 0
     }
+    # Send initial battle message
+    return f"Battle started! @User{user_a} vs @User{user_b}\nFirst move is @User{user_a}'s!"
 
-    # Send battle start message
-    battle_text = (
-        f"🔥 **Battle Started!** 🔥\n\n"
-        f"@{battle_data['challenger']['username']} vs. @{battle_data['opponent']['username']}\n"
-        f"Both players start with 100 HP.\n\n"
-        f"@{battle_data['challenger']['username']}, it's your turn! Choose your move:"
-    )
-    buttons = get_action_buttons()
-    message.reply_text(battle_text, reply_markup=InlineKeyboardMarkup(buttons))
+def handle_turn(user_id, action):
+    """Handle the player's turn during the battle."""
+    if user_id not in active_battles:
+        return "You are not in a battle."
+    
+    battle = active_battles[user_id]
+    
+    # Check if it's the user's turn
+    if battle["turn"] != user_id:
+        return "It's not your turn!"
+    
+    opponent_id = battle["opponent"]
+    
+    # Randomize damage for attack
+    damage = random.randint(10, 35)
+    
+    if action == "attack":
+        # Deduct health from the opponent
+        if user_id == battle["user_a"]:
+            battle["user_b_health"] = deduct_health(opponent_id, damage)
+        else:
+            battle["user_a_health"] = deduct_health(opponent_id, damage)
 
-    return battle_data
+    # If both players are still alive, switch turns
+    if battle["user_a_health"] > 0 and battle["user_b_health"] > 0:
+        battle["turn"] = opponent_id
+        return f"@User{user_id} attacked! The opponent lost {damage} health.\nYour turn next!"
+    
+    # Determine winner and reward
+    if battle["user_a_health"] <= 0:
+        winner = opponent_id
+    else:
+        winner = user_id
 
+    # Battle result (add random points and exp)
+    points = random.randint(200, 300)
+    exp = random.randint(0, 100)
+    
+    update_points(winner, points)
+    # Simulate leveling up here (example)
+    update_level(winner, points, exp)  
 
-def get_action_buttons():
-    """Generate inline buttons for actions."""
-    return [
-        [
-            InlineKeyboardButton("Attack", callback_data="battle_action_attack"),
-            InlineKeyboardButton("Defend", callback_data="battle_action_defend"),
-            InlineKeyboardButton("Special Move", callback_data="battle_action_special"),
-        ]
-    ]
-
-
-def handle_battle_action(client, callback_query):
-    """Handle a player's battle action."""
-    data = callback_query.data.split("_")[-1]
-    user_id = callback_query.from_user.id
-
-    # Find battle
-    opponent_id = active_battles.get(user_id)
-    if not opponent_id:
-        callback_query.answer("You're not in a battle!")
-        return
-
-    # Fetch battle data
-    battle_data = get_battle_data(user_id)
-    if not battle_data:
-        callback_query.answer("Error fetching battle data.")
-        return
-
-    # Check turn
-    if battle_data["turn"] != user_id:
-        callback_query.answer("It's not your turn!")
-        return
-
-    # Process action
-    opponent = "challenger" if battle_data["opponent"]["id"] == user_id else "opponent"
-    player = "challenger" if battle_data["challenger"]["id"] == user_id else "opponent"
-    action_text = ""
-
-    if data == "attack":
-        damage = randint(10, 35)
-        battle_data[opponent]["health"] -= damage
-        action_text = f"@{battle_data[player]['username']} attacked @{battle_data[opponent]['username']} for {damage} HP!"
-    elif data == "defend":
-        damage = randint(5, 15)
-        battle_data[opponent]["health"] -= damage
-        action_text = f"@{battle_data[player]['username']} defended, reducing damage to {damage} HP!"
-    elif data == "special":
-        current_time = time.time()
-        last_special_time = battle_data[player]["last_special_move_time"]
-
-        # Check cooldown for special move
-        if current_time - last_special_time < 15:
-            cooldown_remaining = 15 - int(current_time - last_special_time)
-            callback_query.answer(f"Special Move is on cooldown. Wait {cooldown_remaining} seconds.")
-            return
-
-        damage = randint(25, 50)
-        battle_data[opponent]["health"] -= damage
-        battle_data[player]["last_special_move_time"] = current_time
-        action_text = f"@{battle_data[player]['username']} used a special move for {damage} HP damage!"
-
-    # Check for winner
-    if battle_data[opponent]["health"] <= 0:
-        reward_winner(callback_query, battle_data, player)
-        end_battle(battle_data)
-        return
-
-    # Update turn and send action result
-    battle_data["turn"] = battle_data[opponent]["id"]
-    callback_query.message.edit_text(
-        f"{action_text}\n\n"
-        f"@{battle_data[opponent]['username']}, it's your turn! Choose your move:",
-        reply_markup=InlineKeyboardMarkup(get_action_buttons()),
-    )
-
-
-def reward_winner(callback_query, battle_data, winner):
-    """Reward the winning player with points and experience."""
-    winner_data = battle_data[winner]
-    points_reward = randint(200, 300)
-    exp_reward = randint(20, 100)
-
-    # Update database for the winner
-    update_points(winner_data["id"], points_reward)
-    update_user_data(winner_data["id"], new_exp=exp_reward, new_level=None)
-
-    # Announce winner and rewards
-    callback_query.message.reply_text(
-        f"🎉 **{winner_data['username']} wins the battle!** 🎉\n\n"
-        f"🏆 **Rewards:**\n"
-        f"- {points_reward} Points\n"
-        f"- {exp_reward} EXP"
-    )
-
-
-def get_battle_data(user_id):
-    """Retrieve the battle data for a user."""
-    opponent_id = active_battles.get(user_id)
-    if not opponent_id:
-        return None
-    return {
-        "challenger": {"id": user_id, "username": "Challenger", "health": 100, "last_special_move_time": 0},
-        "opponent": {"id": opponent_id, "username": "Opponent", "health": 100, "last_special_move_time": 0},
-        "turn": user_id,
-    }
-
-
-def end_battle(battle_data):
-    """End a battle and remove it from active battles."""
-    challenger_id = battle_data["challenger"]["id"]
-    opponent_id = battle_data["opponent"]["id"]
-
-    active_battles.pop(challenger_id, None)
-    active_battles.pop(opponent_id, None)
+    return f"Battle over! @User{winner} wins!\nYou earned {points} points and {exp} EXP!"
