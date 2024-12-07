@@ -9,6 +9,7 @@ from Bot.daily import claim_daily_reward
 from Bot.leaderboard import update_leaderboard_message, leaderboard_modes, prepare_leaderboard_message  # Import leaderboard functions
 from Bot.poll import start_poll, handle_vote, show_poll_results, BOT_ADMIN_ID
 from Bot.shop import get_shop_page, handle_purchase
+from Bot.battle import start_battle, handle_battle_action
 from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health, connect_db
 
 API_ID = "21989020"
@@ -153,6 +154,24 @@ def shop_purchase_handler(client, callback_query):
     item_id = int(callback_query.data.split("_")[-1])
     response = handle_purchase(user_id, item_id)
     callback_query.answer(response, show_alert=True)
+
+@app.on_message(filters.command("battle"))
+def battle_handler(client, message):
+    """Handle battle challenge."""
+    challenger_id = message.from_user.id
+    opponent_id = message.reply_to_message.from_user.id if message.reply_to_message else None
+
+    if not opponent_id:
+        message.reply("You need to reply to a user to challenge them.")
+        return
+
+    start_battle(client, message, challenger_id, opponent_id)
+
+
+@app.on_callback_query(filters.regex(r"battle_action_.*"))
+def battle_action_handler(client, callback_query):
+    """Handle battle actions."""
+    handle_battle_action(client, callback_query)
 
 # Global dictionaries for leaderboard modes and message IDs
 leaderboard_modes = {}  # Tracks current leaderboard type ("points" or "level") for each group
