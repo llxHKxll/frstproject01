@@ -28,7 +28,7 @@ def create_db():
                 health INTEGER DEFAULT 100,
                 last_activity_time INTEGER DEFAULT 0,
                 last_claimed INTEGER DEFAULT 0,
-                chat_id INTEGER DEFAULT 0  -- Add this column to store group ID
+                chat_id INTEGER DEFAULT 0  -- Add this column to store group ID,
                 xp_booster_expiry INTEGER DEFAULT 0 -- New column to track xp booster expiry time 
             )
         ''')  
