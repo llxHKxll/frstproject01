@@ -10,7 +10,7 @@ from Bot.daily import claim_daily_reward
 from Bot.leaderboard import update_leaderboard_message, leaderboard_modes, prepare_leaderboard_message  # Import leaderboard functions
 from Bot.poll import start_poll, handle_vote, show_poll_results, BOT_ADMIN_ID
 from Bot.shop import get_shop_page, handle_purchase
-from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health, connect_db, update_kills, get_user_kills_today
+from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health, connect_db, update_kills, get_user_kills_today, update_last_kill_time
 
 API_ID = "21989020"
 API_HASH = "3959305ae244126404702aa5068ba15c"
