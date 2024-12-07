@@ -18,6 +18,7 @@ def create_db():
     """Initialize the database by creating tables."""
     with connect_db() as conn:
         c = conn.cursor()
+        # Corrected SQL query to include the new column xp_booster_expiry
         c.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY,
@@ -28,8 +29,8 @@ def create_db():
                 health INTEGER DEFAULT 100,
                 last_activity_time INTEGER DEFAULT 0,
                 last_claimed INTEGER DEFAULT 0,
-                chat_id INTEGER DEFAULT 0  -- Add this column to store group ID,
-                xp_booster_expiry INTEGER DEFAULT 0 -- New column to track xp booster expiry time 
+                chat_id INTEGER DEFAULT 0,
+                xp_booster_expiry INTEGER DEFAULT 0  -- Add this column to track booster expiry
             )
         ''')  
         conn.commit()
