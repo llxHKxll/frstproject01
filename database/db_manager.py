@@ -182,7 +182,7 @@ def update_last_kill_time(user_id):
             SET last_kill_time = ?
             WHERE user_id = ?
             """,
-            (int(time()), user_id),  # Set last_kill_time to the current time
+            (int(time.time()), user_id),  # Use time.time() to get the current time
         )
         conn.commit()
 
