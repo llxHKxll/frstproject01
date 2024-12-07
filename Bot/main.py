@@ -152,7 +152,7 @@ def shop_purchase_handler(client, callback_query):
     user_id = callback_query.from_user.id
     item_id = int(callback_query.data.split("_")[-1])
     response = handle_purchase(user_id, item_id)
-    callback_query.answer(response)
+    callback_query.answer(response, show_alert=True)
 
 # Global dictionaries for leaderboard modes and message IDs
 leaderboard_modes = {}  # Tracks current leaderboard type ("points" or "level") for each group
