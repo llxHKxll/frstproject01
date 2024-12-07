@@ -1,5 +1,11 @@
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from database.db_manager import get_user, update_points
 import time
+
+# Admin user ID (replace this with the actual admin ID)
+BOT_ADMIN_ID = 6329058409
+
+polls = {}  # Store polls in memory
 
 # Example shop items
 SHOP_ITEMS = {
@@ -20,21 +26,13 @@ SHOP_ITEMS = {
 # Navigation settings
 ITEMS_PER_PAGE = 6
 
-# Placeholder user data (replace with database functions)
-USER_DATA = {
-    123456789: {  # Replace with actual user ID
-        "coins": 500,
-        "health": 75,
-        "xp_booster_active": False,
-    }
-}
 
 def get_shop_page(page_number):
     """Generate the shop text and inline buttons for a given page."""
     start_index = (page_number - 1) * ITEMS_PER_PAGE
     end_index = start_index + ITEMS_PER_PAGE
     items = list(SHOP_ITEMS.items())[start_index:end_index]
-    
+
     if not items:
         return "No items available on this page.", InlineKeyboardMarkup([])
 
@@ -61,32 +59,40 @@ def get_shop_page(page_number):
 
     return shop_text, InlineKeyboardMarkup(buttons)
 
+
 def handle_purchase(user_id, item_id):
     """Handle the purchase of a shop item."""
-    user = USER_DATA.get(user_id)
-    if not user:
-        return "User not found."
+    # Fetch user data from the database
+    user_data = get_user(user_id)
+    if not user_data:
+        return "User not found. Please register using /start."
+
+    points = user_data[2]  # Assuming points are at index 2
+    health = user_data[5]  # Assuming health is at index 5
+    xp_booster_active = user_data[6]  # Assuming XP booster status is stored
 
     item = SHOP_ITEMS.get(item_id)
     if not item:
         return "Item not found."
 
     # Check conditions
-    if item["condition"] == "no_active_booster" and user["xp_booster_active"]:
+    if item["condition"] == "no_active_booster" and xp_booster_active:
         return "You already have an active XP Booster. Wait for it to expire before purchasing another."
-    if item["condition"] == "not_full_health" and user["health"] == 100:
+    if item["condition"] == "not_full_health" and health == 100:
         return "Your health is already full. You don't need a Health Refill."
 
     # Check coins
-    if user["coins"] < item["price"]:
+    if points < item["price"]:
         return "You don't have enough coins to buy this item."
 
     # Deduct coins and apply the effect
-    user["coins"] -= item["price"]
+    update_points(user_id, -item["price"])  # Deduct points from the user
     if item["condition"] == "no_active_booster":
-        user["xp_booster_active"] = True
-        # Add logic to expire the booster after 24 hours (not implemented here)
+        # Mark booster as active and set expiration (logic for timing not shown here)
+        pass
     if item["condition"] == "not_full_health":
-        user["health"] = 100
+        # Update health to 100% in the database
+        from database.db_manager import update_health
+        update_health(user_id, 100)
 
     return f"You successfully purchased: {item['name']}!"
