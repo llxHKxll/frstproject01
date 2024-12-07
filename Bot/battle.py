@@ -3,14 +3,15 @@ import time
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from database.db_manager import get_user, update_points, update_health, deduct_health
 
-# Store active battles
-active_battles = {}
+# battle.py
+
+active_battles = {}  # Keep track of all ongoing battles
 
 def start_battle(user_a, user_b):
-    """Start the battle between two users."""
+    """Start a battle between two users."""
     active_battles[user_a] = {
         "opponent": user_b,
-        "turn": user_a,
+        "turn": user_a,  # User A's turn
         "user_a_health": 100,
         "user_b_health": 100,
         "user_a_boost": False,  # No active boost
@@ -18,9 +19,8 @@ def start_battle(user_a, user_b):
         "user_a_special_move": 0,
         "user_b_special_move": 0
     }
-    # Send initial battle message
     return f"Battle started! @User{user_a} vs @User{user_b}\nFirst move is @User{user_a}'s!"
-
+    
 def handle_turn(user_id, action):
     """Handle the player's turn during the battle."""
     if user_id not in active_battles:
