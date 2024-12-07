@@ -171,6 +171,20 @@ def get_user_kills_today(user_id):
         )
         return cursor.fetchone()
 
+def update_last_kill_time(user_id):
+    """Update the last kill time for the user."""
+    with connect_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            UPDATE users
+            SET last_kill_time = ?
+            WHERE user_id = ?
+            """,
+            (int(time()), user_id),  # Set last_kill_time to the current time
+        )
+        conn.commit()
+
 def get_group_members(chat_id, order_by="points"):
     """Fetch members in the group sorted by points or level."""
     valid_columns = ["points", "level"]
