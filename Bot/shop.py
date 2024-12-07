@@ -38,11 +38,14 @@ def get_shop_page(page_number):
         shop_text += f"{item_id}. **{item['name']}** - {item['price']} coins\n"
         shop_text += f"   {item['description']}\n\n"
 
-    # Generate inline buttons
-    buttons = [
-        [InlineKeyboardButton(item["name"], callback_data=f"buy_{item_id}")]
-        for item_id, item in items
-    ]
+    # Generate inline buttons, grouping 2 buttons per row
+    buttons = []
+    for i in range(0, len(items), 2):
+        row = [
+            InlineKeyboardButton(item["name"], callback_data=f"buy_{item_id}")
+            for item_id, item in items[i:i + 2]
+        ]
+        buttons.append(row)
 
     # Add navigation buttons
     if len(SHOP_ITEMS) > ITEMS_PER_PAGE:
