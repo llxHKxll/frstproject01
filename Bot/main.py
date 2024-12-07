@@ -161,8 +161,15 @@ async def kill_handler(client, message: Message):
     """Handle the /kill command to reduce another user's health."""
     user_id = message.from_user.id
 
+    # Get user data including last kill time
+    user_data = get_user(user_id)
+    if not user_data:
+        await message.reply("User not found.")
+        return
+
+    last_kill_time = user_data[-1]  # Get last_kill_time from user_data
+
     # Check if the user has used /kill in the last 20 seconds (cooldown)
-    last_kill_time = get_user(user_id)[-1]  # Fetch last kill time from the database
     if last_kill_time and time() - last_kill_time < 20:
         await message.reply("You must wait 20 seconds before using /kill again.")
         return
@@ -193,7 +200,7 @@ async def kill_handler(client, message: Message):
         return
 
     # Check if the user has already killed 10 users today
-    kills_today = target_user_data[8]  # Assuming kills_today is at index 8
+    kills_today = user_data[8]  # Assuming kills_today is at index 8
     if kills_today >= 10:
         await message.reply("You've already killed 10 users today. You cannot kill anyone else.")
         return
@@ -218,6 +225,9 @@ async def kill_handler(client, message: Message):
 
     # Update the number of kills for the user today
     update_kills(user_id)
+
+    # Update the last kill time in the database
+    update_last_kill_time(user_id)  # Function to update last kill time
 
     # Send a message indicating the result
     if new_health > 0:
