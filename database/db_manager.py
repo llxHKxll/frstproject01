@@ -1,7 +1,5 @@
-import time
 import sqlite3
 import os
-from datetime import datetime
 
 # Ensure the 'database' directory exists
 database_dir = os.path.join(os.path.dirname(__file__), 'database')
@@ -32,9 +30,7 @@ def create_db():
                 last_activity_time INTEGER DEFAULT 0,
                 last_claimed INTEGER DEFAULT 0,
                 chat_id INTEGER DEFAULT 0,
-                xp_booster_expiry INTEGER DEFAULT 0,  -- Add this column to track booster expiry
-                kills_today INTEGER DEFAULT 0,
-                last_kill_time INTEGER DEFAULT 0
+                xp_booster_expiry INTEGER DEFAULT 0  -- Add this column to track booster expiry
             )
         ''')  
         conn.commit()
@@ -45,10 +41,10 @@ def add_user(user_id, username=None):
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT OR IGNORE INTO users (user_id, username, points, level, exp, health, last_activity_time, last_claimed, chat_id, kills_today, last_kill_time)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR IGNORE INTO users (user_id, username, points, level, exp, health, last_activity_time, last_claimed, chat_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (user_id, username or "Unknown", 10000, 1, 0, 100, 0, 0, chat_id, 0, 0)  # Add last_claimed as 0
+            (user_id, username or "Unknown", 10000, 1, 0, 100, 0, 0, chat_id)  # Add last_claimed as 0
         )
         conn.commit()
         print(f"Added user: {user_id}, {username}")  # Debugging line
@@ -140,51 +136,6 @@ def ensure_user_exists(user_id, username=None):
                 (user_id, username or "Unknown"),
             )
             conn.commit()
-
-# Update the user's last kill time
-def update_kills(user_id):
-    """Update the number of kills made by the user today."""
-    with connect_db() as conn:
-        cursor = conn.cursor()
-        # Increment kills for the user by 1 (assuming a kills column)
-        cursor.execute(
-            """
-            UPDATE users
-            SET kills_today = kills_today + 1, last_kill_time = ?
-            WHERE user_id = ?
-            """,
-            (int(time.time()), user_id),
-        )
-        conn.commit()
-
-# Fetch the number of kills the user has made today
-def get_user_kills_today(user_id):
-    """Get the number of kills the user has made today."""
-    with connect_db() as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            SELECT kills_today, last_kill_time
-            FROM users
-            WHERE user_id = ?
-            """,
-            (user_id,),
-        )
-        return cursor.fetchone()
-
-def update_last_kill_time(user_id):
-    """Update the last kill time for the user."""
-    with connect_db() as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            UPDATE users
-            SET last_kill_time = ?
-            WHERE user_id = ?
-            """,
-            (int(time.time()), user_id),  # Use time.time() to get the current time
-        )
-        conn.commit()
 
 def get_group_members(chat_id, order_by="points"):
     """Fetch members in the group sorted by points or level."""
