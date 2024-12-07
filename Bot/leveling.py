@@ -1,3 +1,4 @@
+import time
 from database.db_manager import get_user, update_user_data
 
 def level_up(user_id, message_text):
