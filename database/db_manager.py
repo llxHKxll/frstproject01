@@ -29,6 +29,7 @@ def create_db():
                 last_activity_time INTEGER DEFAULT 0,
                 last_claimed INTEGER DEFAULT 0,
                 chat_id INTEGER DEFAULT 0  -- Add this column to store group ID
+                xp_booster_expiry INTEGER DEFAULT 0 -- New column to track xp booster expiry time 
             )
         ''')  
         conn.commit()
@@ -53,13 +54,13 @@ def get_user(user_id):
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT user_id, username, points, level, exp, health, last_activity_time, last_claimed
+            SELECT user_id, username, points, level, exp, health, last_activity_time, last_claimed, xp_booster_expiry
             FROM users
             WHERE user_id = ?
             """,
             (user_id,),
         )
-        return cursor.fetchone()
+        return cursor.fetchone()  # Include xp_booster_expiry in the results
         
 def update_points(user_id, points):
     """Update user points."""
