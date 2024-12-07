@@ -1,4 +1,4 @@
-import time from time
+import time
 import sqlite3
 import os
 from datetime import datetime
