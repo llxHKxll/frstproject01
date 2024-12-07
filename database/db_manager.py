@@ -106,8 +106,6 @@ def update_health(user_id, health):
         )
         conn.commit()
 
-import random
-
 def deduct_health(user_id, damage):
     """Deduct health from the user's account during battle."""
     user_data = get_user(user_id)
