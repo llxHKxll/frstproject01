@@ -1,8 +1,9 @@
 import re
+import random
 from datetime import datetime
 from time import time
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
 from Bot.flood_control import check_flood
 from Bot.leveling import level_up
 from Bot.daily import claim_daily_reward
@@ -153,6 +154,52 @@ def shop_purchase_handler(client, callback_query):
     item_id = int(callback_query.data.split("_")[-1])
     response = handle_purchase(user_id, item_id)
     callback_query.answer(response, show_alert=True)
+
+
+@app.on_message(filters.command("kill"))
+async def kill_handler(client, message: Message):
+    """Handle the /kill command to reduce another user's health."""
+    user_id = message.from_user.id
+
+    # Ensure /kill is used by replying to another user's message
+    if not message.reply_to_message:
+        await message.reply("You must reply to another user's message to use /kill!")
+        return
+
+    target_user = message.reply_to_message.from_user
+
+    # Prevent killing bots
+    if target_user.is_bot:
+        await message.reply("You can't kill a bot.")
+        return
+
+    # Fetch target user's data from the database
+    target_user_data = get_user(target_user.id)
+    if not target_user_data:
+        await message.reply("Target user not found.")
+        return
+
+    target_health = target_user_data[5]  # Get target user's current health
+
+    # If the target user is already dead, prevent killing
+    if target_health <= 0:
+        await message.reply(f"{target_user.first_name} has already died and cannot be killed!")
+        return
+
+    # Random damage between 5 and 20
+    damage = random.randint(5, 20)
+    
+    # Apply the damage, ensuring health doesn't go below 0
+    new_health = max(target_health - damage, 0)
+    
+    # Update the target user's health in the database
+    update_health(target_user.id, new_health)
+
+    # Send a message indicating the result
+    if new_health > 0:
+        await message.reply(f"{target_user.first_name} has been attacked and lost {damage} health! Current health: {new_health}%.")
+    else:
+        await message.reply(f"{target_user.first_name} has been killed! Their health is now 0%.")
 
 # Global dictionaries for leaderboard modes and message IDs
 leaderboard_modes = {}  # Tracks current leaderboard type ("points" or "level") for each group
