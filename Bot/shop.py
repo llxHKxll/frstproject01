@@ -1,11 +1,9 @@
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from database.db_manager import get_user, update_points
+from database.db_manager import get_user, update_points, update_health
 import time
 
 # Admin user ID (replace this with the actual admin ID)
 BOT_ADMIN_ID = 6329058409
-
-polls = {}  # Store polls in memory
 
 # Example shop items
 SHOP_ITEMS = {
@@ -23,9 +21,7 @@ SHOP_ITEMS = {
     }
 }
 
-# Navigation settings
 ITEMS_PER_PAGE = 6
-
 
 def get_shop_page(page_number):
     """Generate the shop text and inline buttons for a given page."""
@@ -59,7 +55,6 @@ def get_shop_page(page_number):
 
     return shop_text, InlineKeyboardMarkup(buttons)
 
-
 def handle_purchase(user_id, item_id):
     """Handle the purchase of a shop item."""
     # Fetch user data from the database
@@ -92,7 +87,6 @@ def handle_purchase(user_id, item_id):
         pass
     if item["condition"] == "not_full_health":
         # Update health to 100% in the database
-        from database.db_manager import update_health
         update_health(user_id, 100)
 
     return f"You successfully purchased: {item['name']}!"
