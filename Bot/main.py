@@ -10,7 +10,7 @@ from Bot.daily import claim_daily_reward
 from Bot.leaderboard import update_leaderboard_message, leaderboard_modes, prepare_leaderboard_message  # Import leaderboard functions
 from Bot.poll import start_poll, handle_vote, show_poll_results, BOT_ADMIN_ID
 from Bot.shop import get_shop_page, handle_purchase
-from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health, connect_db, update_kills, get_user_kills_today, update_last_kill_time
+from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health, connect_db
 
 API_ID = "21989020"
 API_HASH = "3959305ae244126404702aa5068ba15c"
@@ -69,18 +69,97 @@ def start_handler(client, message):
         add_user(user_id, username)
         user_data = get_user(user_id)
 
+@app.on_message(filters.command("daily"))
+def daily_handler(client, message):
+    """Handle the /daily command to give daily rewards."""
+    user_id = message.from_user.id
+    response = claim_daily_reward(user_id)
+    message.reply_text(response)
+
+import re
+
+@app.on_message(filters.command("poll"))
+def poll_handler(client, message):
+    """Handle the /poll command to create polls."""
+    user_id = message.from_user.id
+
+    # Ensure only admin can create polls
+    if user_id != BOT_ADMIN_ID:
+        message.reply("You need to be a bot admin to create a poll.")
+        return
+
+    # Parse the command
+    command_text = message.text[len("/poll "):].strip()  # Remove command prefix
+    if not command_text.startswith("\"") or "\"" not in command_text[1:]:
+        message.reply("Usage: /poll \"<question>\" \"<option1>\" \"<option2>\" ... [expiry_time_in_minutes]")
+        return
+
+    # Extract question
+    question_end_index = command_text.index("\"", 1)  # Find closing quote for the question
+    question = command_text[1:question_end_index].strip()
+
+    # Extract remaining text (options and expiry time)
+    remaining_text = command_text[question_end_index + 1:].strip()
+
+    # Use regex to extract options in quotes
+    options = re.findall(r'"([^"]+)"', remaining_text)
+
+    # Extract expiry time if present (non-quoted trailing number)
+    expiry_time = None
+    if remaining_text.split()[-1].isdigit():
+        expiry_time = int(remaining_text.split()[-1])
+        if len(options) > 1:  # Ensure the last number isn't misinterpreted as an option
+            options.pop()
+
+    # Validate options
+    if len(options) < 2:
+        message.reply("Please provide at least two options for the poll.")
+        return
+
+    # Start the poll
+    start_poll(client, message, question, options, expiry_time)
+
+@app.on_callback_query(filters.regex(r"vote_\d+_.*"))
+def vote_handler(client, callback_query):
+    """Handle user votes."""
+    handle_vote(client, callback_query)
+
+@app.on_message(filters.command("results"))
+def results_handler(client, message):
+    """Show poll results."""
+    try:
+        poll_id = int(message.text.split()[1])  # Extract poll_id from the message
+        show_poll_results(client, message, poll_id)
+    except (ValueError, IndexError):
+        message.reply("Usage: /results <poll_id>")
+
+@app.on_message(filters.command("shop"))
+def shop_handler(client, message):
+    """Handle the /shop command to display the shop."""
+    page_number = 1  # Default to the first page
+    shop_text, reply_markup = get_shop_page(page_number)
+    message.reply_text(shop_text, reply_markup=reply_markup)
+
+@app.on_callback_query(filters.regex(r"shop_page_\d+"))
+def shop_page_handler(client, callback_query):
+    """Handle navigation between shop pages."""
+    page_number = int(callback_query.data.split("_")[-1])
+    shop_text, reply_markup = get_shop_page(page_number)
+    callback_query.message.edit_text(shop_text, reply_markup=reply_markup)
+
+@app.on_callback_query(filters.regex(r"buy_\d+"))
+def shop_purchase_handler(client, callback_query):
+    """Handle purchases from the shop."""
+    user_id = callback_query.from_user.id
+    item_id = int(callback_query.data.split("_")[-1])
+    response = handle_purchase(user_id, item_id)
+    callback_query.answer(response, show_alert=True)
+
+
 @app.on_message(filters.command("kill"))
 async def kill_handler(client, message: Message):
     """Handle the /kill command to reduce another user's health."""
     user_id = message.from_user.id
-
-    # Get user data including last kill time
-    user_data = get_user(user_id)
-    if not user_data:
-        await message.reply("User not found.")
-        return
-
-    last_kill_time = user_data[-1]  # Get last_kill_time from user_data
 
     # Ensure /kill is used by replying to another user's message
     if not message.reply_to_message:
@@ -107,11 +186,6 @@ async def kill_handler(client, message: Message):
         await message.reply(f"{target_user.first_name} has already died and cannot be killed!")
         return
 
-    # Check for chance of failure (e.g., 30% chance to fail)
-    if random.random() < 0.3:
-        await message.reply(f"Failed to kill {target_user.first_name}!")
-        return
-
     # Random damage between 5 and 20
     damage = random.randint(5, 20)
     
@@ -121,21 +195,11 @@ async def kill_handler(client, message: Message):
     # Update the target user's health in the database
     update_health(target_user.id, new_health)
 
-    # Calculate reward points (random between 3 and 24 points)
-    points_reward = random.randint(3, 24)
-    update_points(user_id, points_reward)
-
-    # Update the number of kills for the user today
-    update_kills(user_id)
-
-    # Update the last kill time in the database
-    update_last_kill_time(user_id)  # Function to update last kill time
-
     # Send a message indicating the result
     if new_health > 0:
-        await message.reply(f"{target_user.first_name} has been attacked and lost {damage} health! Current health: {new_health}%. You have received {points_reward} points.")
+        await message.reply(f"{target_user.first_name} has been attacked and lost {damage} health! Current health: {new_health}%.")
     else:
-        await message.reply(f"{target_user.first_name} has been killed! Their health is now 0%. You have received {points_reward} points.")
+        await message.reply(f"{target_user.first_name} has been killed! Their health is now 0%.")
 
 # Global dictionaries for leaderboard modes and message IDs
 leaderboard_modes = {}  # Tracks current leaderboard type ("points" or "level") for each group
@@ -199,7 +263,7 @@ def help_handler(client, message):
         "/start - ɪɴɪᴛᴀʟɪᴢᴇ ʏᴏᴜʀ ᴘʀᴏғɪʟᴇ\n"
         "/profile - ᴠɪᴇᴡ ᴘʀᴏғɪʟᴇ\n"
         "/help - ᴅɪsᴘʟᴀʏ ᴛʜɪs ʜᴇʟᴘ ᴍᴇɴᴜ\n"
-        "/daily - ᴄʟᴀɪᴍ ʏᴏᴜʀ ᴅᴀɪʟʏ ʀᴇᴡᴀʀ𝖽 ᴘᴏɪɴ𝖳s !\n\n"
+        "/daily - ᴄʟᴀɪᴍ ʏᴏᴜʀ ᴅᴀɪʟʏ ʀᴇᴡᴀʀᴅ ᴘᴏɪɴᴛs !\n\n"
         "🎯 **: Tips**\n"
         "- Claim your daily reward every 24 hours to keep progressing faster.\n"
         "- Avoid spamming, or the flood control will block your commands temporarily.\n"
