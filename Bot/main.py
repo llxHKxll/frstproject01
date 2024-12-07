@@ -162,8 +162,8 @@ async def kill_handler(client, message: Message):
     user_id = message.from_user.id
 
     # Check if the user has used /kill in the last 20 seconds (cooldown)
-    last_kill_time = get_user_kills_today(user_id)  # Assume this returns the last time the user used /kill
-    if last_kill_time and time.time() - last_kill_time < 20:
+    last_kill_time = get_user(user_id)[-1]  # Fetch last kill time from the database
+    if last_kill_time and time() - last_kill_time < 20:
         await message.reply("You must wait 20 seconds before using /kill again.")
         return
 
@@ -193,7 +193,7 @@ async def kill_handler(client, message: Message):
         return
 
     # Check if the user has already killed 10 users today
-    kills_today = get_user_kills_today(user_id)
+    kills_today = target_user_data[8]  # Assuming kills_today is at index 8
     if kills_today >= 10:
         await message.reply("You've already killed 10 users today. You cannot kill anyone else.")
         return
@@ -224,7 +224,7 @@ async def kill_handler(client, message: Message):
         await message.reply(f"{target_user.first_name} has been attacked and lost {damage} health! Current health: {new_health}%. You have received {points_reward} points.")
     else:
         await message.reply(f"{target_user.first_name} has been killed! Their health is now 0%. You have received {points_reward} points.")
-
+      
 # Global dictionaries for leaderboard modes and message IDs
 leaderboard_modes = {}  # Tracks current leaderboard type ("points" or "level") for each group
 leaderboard_message_ids = {}  # Tracks message IDs of leaderboard messages for each group
