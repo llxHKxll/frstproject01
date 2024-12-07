@@ -10,7 +10,7 @@ from Bot.daily import claim_daily_reward
 from Bot.leaderboard import update_leaderboard_message, leaderboard_modes, prepare_leaderboard_message  # Import leaderboard functions
 from Bot.poll import start_poll, handle_vote, show_poll_results, BOT_ADMIN_ID
 from Bot.shop import get_shop_page, handle_purchase
-from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health, connect_db
+from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health, connect_db, update_kills, get_user_kills_today
 
 API_ID = "21989020"
 API_HASH = "3959305ae244126404702aa5068ba15c"
@@ -161,6 +161,12 @@ async def kill_handler(client, message: Message):
     """Handle the /kill command to reduce another user's health."""
     user_id = message.from_user.id
 
+    # Check if the user has used /kill in the last 20 seconds (cooldown)
+    last_kill_time = get_user_kills_today(user_id)  # Assume this returns the last time the user used /kill
+    if last_kill_time and time.time() - last_kill_time < 20:
+        await message.reply("You must wait 20 seconds before using /kill again.")
+        return
+
     # Ensure /kill is used by replying to another user's message
     if not message.reply_to_message:
         await message.reply("You must reply to another user's message to use /kill!")
@@ -186,6 +192,17 @@ async def kill_handler(client, message: Message):
         await message.reply(f"{target_user.first_name} has already died and cannot be killed!")
         return
 
+    # Check if the user has already killed 10 users today
+    kills_today = get_user_kills_today(user_id)
+    if kills_today >= 10:
+        await message.reply("You've already killed 10 users today. You cannot kill anyone else.")
+        return
+
+    # Check for chance of failure (e.g., 30% chance to fail)
+    if random.random() < 0.3:
+        await message.reply(f"Failed to kill {target_user.first_name}!")
+        return
+
     # Random damage between 5 and 20
     damage = random.randint(5, 20)
     
@@ -195,11 +212,18 @@ async def kill_handler(client, message: Message):
     # Update the target user's health in the database
     update_health(target_user.id, new_health)
 
+    # Calculate reward points (random between 3 and 24 points)
+    points_reward = random.randint(3, 24)
+    update_points(user_id, points_reward)
+
+    # Update the number of kills for the user today
+    update_kills(user_id)
+
     # Send a message indicating the result
     if new_health > 0:
-        await message.reply(f"{target_user.first_name} has been attacked and lost {damage} health! Current health: {new_health}%.")
+        await message.reply(f"{target_user.first_name} has been attacked and lost {damage} health! Current health: {new_health}%. You have received {points_reward} points.")
     else:
-        await message.reply(f"{target_user.first_name} has been killed! Their health is now 0%.")
+        await message.reply(f"{target_user.first_name} has been killed! Their health is now 0%. You have received {points_reward} points.")
 
 # Global dictionaries for leaderboard modes and message IDs
 leaderboard_modes = {}  # Tracks current leaderboard type ("points" or "level") for each group
