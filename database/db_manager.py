@@ -1,5 +1,6 @@
 import sqlite3
 import os
+from datetime import datetime
 
 # Ensure the 'database' directory exists
 database_dir = os.path.join(os.path.dirname(__file__), 'database')
@@ -136,6 +137,37 @@ def ensure_user_exists(user_id, username=None):
                 (user_id, username or "Unknown"),
             )
             conn.commit()
+
+# Update the user's last kill time
+def update_kills(user_id):
+    """Update the number of kills made by the user today."""
+    with connect_db() as conn:
+        cursor = conn.cursor()
+        # Increment kills for the user by 1 (assuming a kills column)
+        cursor.execute(
+            """
+            UPDATE users
+            SET kills_today = kills_today + 1, last_kill_time = ?
+            WHERE user_id = ?
+            """,
+            (int(time.time()), user_id),
+        )
+        conn.commit()
+
+# Fetch the number of kills the user has made today
+def get_user_kills_today(user_id):
+    """Get the number of kills the user has made today."""
+    with connect_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT kills_today, last_kill_time
+            FROM users
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        )
+        return cursor.fetchone()
 
 def get_group_members(chat_id, order_by="points"):
     """Fetch members in the group sorted by points or level."""
