@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import random
 
 # Ensure the 'database' directory exists
 database_dir = os.path.join(os.path.dirname(__file__), 'database')
@@ -104,6 +105,18 @@ def update_health(user_id, health):
             (health, user_id),
         )
         conn.commit()
+
+import random
+
+def deduct_health(user_id, damage):
+    """Deduct health from the user's account during battle."""
+    user_data = get_user(user_id)
+    if user_data:
+        current_health = user_data[5]  # health is at index 5 in the user_data
+        new_health = max(0, current_health - damage)  # Prevent health from going below 0
+        update_health(user_id, new_health)  # Update the health in the database
+        return new_health
+    return None
 
 def update_user_data(user_id, new_exp, new_level):
     """Update user experience and level."""
