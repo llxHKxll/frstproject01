@@ -64,15 +64,17 @@ def handle_purchase(user_id, item_id):
 
     points = user_data[2]  # Assuming points are at index 2
     health = user_data[5]  # Assuming health is at index 5
-    xp_booster_active = user_data[6]  # Assuming XP booster status is stored
+    xp_booster_expiry = user_data[8]  # Assuming xp_booster_expiry is at index 8
 
     item = SHOP_ITEMS.get(item_id)
     if not item:
         return "Item not found."
 
-    # Check conditions
-    if item["condition"] == "no_active_booster" and xp_booster_active:
-        return "You already have an active XP Booster. Wait for it to expire before purchasing another."
+    # Check conditions for XP Booster
+    if item["condition"] == "no_active_booster":
+        if xp_booster_expiry > time.time():
+            return "You already have an active XP Booster. Wait for it to expire before purchasing another."
+    
     if item["condition"] == "not_full_health" and health == 100:
         return "Your health is already full. You don't need a Health Refill."
 
@@ -82,11 +84,28 @@ def handle_purchase(user_id, item_id):
 
     # Deduct coins and apply the effect
     update_points(user_id, -item["price"])  # Deduct points from the user
+    
     if item["condition"] == "no_active_booster":
-        # Mark booster as active and set expiration (logic for timing not shown here)
-        pass
+        # Set XP booster expiry (24 hours from now)
+        xp_booster_expiry = time.time() + 86400  # 24 hours in seconds
+        update_xp_booster_expiry(user_id, xp_booster_expiry)  # Update the database with the new expiry time
+
     if item["condition"] == "not_full_health":
         # Update health to 100% in the database
         update_health(user_id, 100)
 
     return f"You successfully purchased: {item['name']}!"
+
+def update_xp_booster_expiry(user_id, expiry_time):
+    """Update the user's XP booster expiry time in the database."""
+    with connect_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            UPDATE users
+            SET xp_booster_expiry = ?
+            WHERE user_id = ?
+            """,
+            (expiry_time, user_id),
+        )
+        conn.commit()
