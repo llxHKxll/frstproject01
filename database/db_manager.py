@@ -11,6 +11,7 @@ DB_PATH = os.path.join(database_dir, "user_data.db")
 
 def connect_db():
     """Connect to the SQLite database."""
+    print(f"Connecting to database at: {DB_PATH}")  # This will print the connection log
     return sqlite3.connect(DB_PATH)
 
 # In db_manager.py - Modify the `create_db()` function to add this column
