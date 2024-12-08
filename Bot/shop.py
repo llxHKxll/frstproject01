@@ -15,7 +15,7 @@ SHOP_ITEMS = {
     },
     2: {
         "name": "Health Refill",
-        "price": 30,
+        "price": 20,
         "description": "Instantly restore health to 100%.",
         "condition": "not_full_health",
     }
