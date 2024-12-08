@@ -10,12 +10,12 @@ SHOP_ITEMS = {
     1: {
         "name": "XP Booster",
         "price": 300,
-        "description": "Boost your XP gain for 24 hours.",
+        "description": "Boost your XP gain for 24 hours !",
         "condition": "no_active_booster",
     },
     2: {
         "name": "Health Refill",
-        "price": 20,
+        "price": 30,
         "description": "Instantly restore health to 100%.",
         "condition": "not_full_health",
     }
