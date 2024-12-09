@@ -2,6 +2,7 @@ import random
 import time
 from threading import Timer
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from Bot.main import app
 
 # Game data storage
 current_game = {}  # Stores game data for each chat
