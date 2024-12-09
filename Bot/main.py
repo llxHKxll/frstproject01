@@ -10,6 +10,7 @@ from Bot.daily import claim_daily_reward
 from Bot.leaderboard import update_leaderboard_message, leaderboard_modes, prepare_leaderboard_message  # Import leaderboard functions
 from Bot.poll import start_poll, handle_vote, show_poll_results, BOT_ADMIN_ID
 from Bot.shop import get_shop_page, handle_purchase
+from Bot.guess import start_game, process_guess
 from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health, connect_db
 
 API_ID = "21989020"
@@ -218,6 +219,38 @@ async def kill_handler(client, message: Message):
         await message.reply(f"{target_user.first_name} has been attacked and lost {damage} health! Current health: {new_health}%. You earned {reward_points} points!")
     else:
         await message.reply(f"{target_user.first_name} has been killed! Their health is now 0%. You earned {reward_points} points!")
+
+
+@app.on_message(filters.command("start_guess"))
+def start_guess_handler(client, message):
+    """Handle /start_guess command."""
+    user_id = message.from_user.id
+
+    # Extract difficulty level
+    try:
+        difficulty = message.text.split()[1].lower()
+    except IndexError:
+        difficulty = None
+
+    if not difficulty:
+        message.reply_text("Usage: /start_guess <difficulty>\nAvailable difficulties: easy, medium, hard.")
+        return
+
+    response = start_game(user_id, difficulty)
+    message.reply_text(response)
+
+@app.on_message(filters.command("guess"))
+def guess_handler(client, message):
+    """Handle /guess <number> command."""
+    user_id = message.from_user.id
+    try:
+        # Extract the guessed number
+        guess = int(message.text.split()[1])
+        response = process_guess(user_id, guess)
+    except (IndexError, ValueError):
+        response = "Usage: /guess <number>. Please provide a valid number."
+
+    message.reply_text(response)
 
 # Global dictionaries for leaderboard modes and message IDs
 leaderboard_modes = {}  # Tracks current leaderboard type ("points" or "level") for each group
