@@ -1,6 +1,6 @@
 import random
 import time
-from pyrogram import Client
+from pyrogram import Client, filters
 from threading import Timer
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
