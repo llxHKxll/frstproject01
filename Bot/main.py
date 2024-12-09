@@ -10,7 +10,7 @@ from Bot.daily import claim_daily_reward
 from Bot.leaderboard import update_leaderboard_message, leaderboard_modes, prepare_leaderboard_message  # Import leaderboard functions
 from Bot.poll import start_poll, handle_vote, show_poll_results, BOT_ADMIN_ID
 from Bot.shop import get_shop_page, handle_purchase
-from Bot.guess import start_game, join_game, force_start_game, cancel_game, process_guess, newguess, forceguess, joinguess, cancelguess
+from Bot.guess import start_game, join_game, force_start_game, cancel_game, process_guess
 from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health, connect_db
 
 API_ID = "21989020"
@@ -77,7 +77,31 @@ def daily_handler(client, message):
     response = claim_daily_reward(user_id)
     message.reply_text(response)
 
-import re
+@app.on_message(filters.command("newguess"))
+def newguess_handler(client, message):
+    """Handle the /newguess command to start a new game."""
+    start_game(client, message)
+
+@app.on_message(filters.command("joinguess"))
+def joinguess_handler(client, message):
+    """Handle the /joinguess command to join a game."""
+    join_game(client, message)
+
+@app.on_message(filters.command("forceguess"))
+def forceguess_handler(client, message):
+    """Handle the /forceguess command to force start a game."""
+    force_start_game(client, message)
+
+@app.on_message(filters.command("cancelguess"))
+def cancelguess_handler(client, message):
+    """Handle the /cancelguess command to cancel a game."""
+    cancel_game(client, message)
+
+@app.on_message(filters.text & filters.group)
+def guess_number_handler(client, message):
+    """Handle guesses from players."""
+    if message.text.startswith("/guess"):
+        process_guess(client, message)
 
 @app.on_message(filters.command("poll"))
 def poll_handler(client, message):
