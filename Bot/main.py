@@ -4,7 +4,6 @@ from datetime import datetime
 from time import time
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
-from Bot.app import app
 from Bot.flood_control import check_flood
 from Bot.leveling import level_up
 from Bot.daily import claim_daily_reward
@@ -13,6 +12,17 @@ from Bot.poll import start_poll, handle_vote, show_poll_results, BOT_ADMIN_ID
 from Bot.shop import get_shop_page, handle_purchase
 from Bot.guess import start_game, join_game, force_start_game, cancel_game, process_guess
 from database.db_manager import create_db, add_user, ensure_user_exists, get_user, update_points, update_level, update_health, connect_db
+
+API_ID = "21989020"
+API_HASH = "3959305ae244126404702aa5068ba15c"
+BOT_TOKEN = "8141351816:AAG1_YB0l88X0SLAHnos9iODdZuCdNEfuFo"
+
+app = Client(
+  name="Kaisen Ranking Bot",
+  api_id=API_ID,
+  api_hash=API_HASH,
+  bot_token=BOT_TOKEN
+)
 
 # Create DB on bot startup
 create_db()
