@@ -221,7 +221,7 @@ async def kill_handler(client, message: Message):
         await message.reply(f"{target_user.first_name} has been killed! Their health is now 0%. You earned {reward_points} points!")
 
 
-@app.on_message(filters.command("start_guess"))
+@app.on_message(filters.command("startguess"))
 def start_guess_handler(client, message):
     """Handle /start_guess command."""
     user_id = message.from_user.id
@@ -233,7 +233,7 @@ def start_guess_handler(client, message):
         difficulty = None
 
     if not difficulty:
-        message.reply_text("Usage: /start_guess <difficulty>\nAvailable difficulties: easy, medium, hard.")
+        message.reply_text("Usage: /startguess <difficulty>\nAvailable difficulties: easy, medium, hard.")
         return
 
     response = start_game(user_id, difficulty)
