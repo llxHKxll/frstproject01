@@ -1,6 +1,6 @@
 import random
 import time
-from Bot.main import bot
+from Bot.main import app
 from pyrogram import filters
 from threading import Timer
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
