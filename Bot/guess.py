@@ -8,12 +8,13 @@ DIFFICULTY_SETTINGS = {
     "easy": {"range": (1, 50), "attempts": 10, "prize": 10},
     "medium": {"range": (1, 100), "attempts": 8, "prize": 30},
     "hard": {"range": (1, 200), "attempts": 5, "prize": 50},
+    "impossible": {"range": (1, 1000), "attempts": 10, "prize": 10000},
 }
 
 def start_game(user_id, difficulty):
     """Start a new guess game for the user with a specific difficulty."""
     if difficulty not in DIFFICULTY_SETTINGS:
-        return "Invalid difficulty. Please choose from: easy, medium, hard."
+        return "Invalid difficulty. Please choose from: easy, medium, hard, impossible"
 
     settings = DIFFICULTY_SETTINGS[difficulty]
     number = random.randint(*settings["range"])  # Generate a random number based on range
@@ -37,7 +38,7 @@ def process_guess(user_id, guess):
     if game["attempts"] <= 0:
         correct_number = game["number"]
         del active_games[user_id]
-        return f"You've run out of attempts! The correct number was {correct_number}.\nUse /start_guess <difficulty> to play again."
+        return f"You've run out of attempts! The correct number was {correct_number}.\nUse /startguess <difficulty> to play again."
 
     # Process the guess
     game["attempts"] -= 1
@@ -46,7 +47,7 @@ def process_guess(user_id, guess):
         del active_games[user_id]  # Clear the game for this user
         update_points(user_id, prize)  # Reward points based on difficulty
         return f"🎉 **Congratulations! You guessed the number correctly!** 🎉\n" \
-               f"You've earned {prize} points! Use /start_guess <difficulty> to play again."
+               f"You've earned {prize} points! Use /startguess <difficulty> to play again."
     elif guess < game["number"]:
         return f"🔽 Too Low! You have {game['attempts']} attempts left."
     else:
