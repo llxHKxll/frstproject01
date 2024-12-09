@@ -2,7 +2,7 @@ import sys
 import os
 from flask import Flask
 from threading import Thread
-from Bot.app import app  # Import your Pyrogram bot
+from Bot.main import app  # Import your Pyrogram bot
 
 # Flask app to satisfy Render's port binding requirement
 flask_app = Flask(__name__)
